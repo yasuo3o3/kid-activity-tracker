@@ -315,15 +315,6 @@ h1 {
   font-size: 0.8rem;
 }
 
-.log-entry.log-start .log-action {
-  color: #059669;
-  font-weight: 600;
-}
-
-.log-entry.log-end .log-action {
-  color: #dc2626;
-  font-weight: 600;
-}
 
 .log-entry.log-study {
   border-left: 4px solid #3b82f6;
