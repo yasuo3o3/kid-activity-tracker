@@ -246,3 +246,142 @@ h1 {
   font-size: .9rem;
   opacity: .8;
 }
+
+/* Activity Logs */
+.activity-logs {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.logs-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.logs-toggle {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logs-toggle:hover {
+  background: #f3f4f6;
+}
+
+.logs-toggle.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.log-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.log-entry {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-action {
+  color: #374151;
+}
+
+.log-time {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.log-entry.start .log-action {
+  color: #059669;
+  font-weight: 600;
+}
+
+.log-entry.end .log-action {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.log-entry.study {
+  border-left: 4px solid #3b82f6;
+}
+
+.log-entry.play {
+  border-left: 4px solid #22c55e;
+}
+
+.log-entry.break {
+  border-left: 4px solid #f59e0b;
+}
+
+/* Dark Mode for Logs */
+@media (prefers-color-scheme: dark) {
+  .activity-logs {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .logs-title {
+    color: #f9fafb;
+  }
+  
+  .logs-toggle {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+  
+  .logs-toggle:hover {
+    background: #4b5563;
+  }
+  
+  .logs-toggle.active {
+    background: #3b82f6;
+    color: #fff;
+  }
+  
+  .log-list {
+    background: #374151;
+    border-color: #4b5563;
+  }
+  
+  .log-entry {
+    border-color: #4b5563;
+  }
+  
+  .log-action {
+    color: #f9fafb;
+  }
+  
+  .log-time {
+    color: #9ca3af;
+  }
+}

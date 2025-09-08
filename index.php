@@ -238,11 +238,102 @@
             <div class="kid-stat">【今週】勉強：${formatTime(kid.week_by_activity.study_sec||0)} / 遊び：${formatTime(kid.week_by_activity.play_sec||0)} / 休憩：${formatTime(kid.week_by_activity.break_sec||0)}</div>
             <div class="kid-stat">【今月】勉強：${formatTime(kid.month_by_activity.study_sec||0)} / 遊び：${formatTime(kid.month_by_activity.play_sec||0)} / 休憩：${formatTime(kid.month_by_activity.break_sec||0)}</div>
           </div>
+          <div class="activity-logs">
+            <div class="logs-header">
+              <div class="logs-title">${kid.kid_name}の活動ログ</div>
+              <button class="logs-toggle" onclick="toggleLogs('${kid.kid_id}')" id="toggle-${kid.kid_id}">本日全件表示</button>
+            </div>
+            <div class="log-list" id="logs-${kid.kid_id}">
+              <div class="log-entry">読み込み中...</div>
+            </div>
+          </div>
         </div>
       `;
     });
     
     container.innerHTML = html;
+    
+    // 各子供のログを読み込み
+    kids.forEach(kid => {
+      loadActivityLogs(kid.kid_id, false);
+    });
+  }
+
+  async function loadActivityLogs(kid_id, today_only = false) {
+    try {
+      const params = new URLSearchParams({
+        kid_id: kid_id,
+        today_only: today_only.toString(),
+        limit: '20'
+      });
+      
+      const r = await fetch(api(`logs.php?${params}`), { method: "GET" });
+      const j = await r.json();
+      
+      if (j.ok) {
+        displayActivityLogs(kid_id, j.events, j.today_event_count, today_only);
+        updateToggleButton(kid_id, today_only, j.today_event_count);
+      } else {
+        document.getElementById(`logs-${kid_id}`).innerHTML = '<div class="log-entry">ログの読み込みに失敗しました</div>';
+      }
+    } catch (e) {
+      console.error("ログ取得エラー:", e);
+      document.getElementById(`logs-${kid_id}`).innerHTML = '<div class="log-entry">ログの読み込みに失敗しました</div>';
+    }
+  }
+
+  function displayActivityLogs(kid_id, events, today_event_count, showing_today_only) {
+    const container = document.getElementById(`logs-${kid_id}`);
+    
+    if (events.length === 0) {
+      container.innerHTML = '<div class="log-entry">ログがありません</div>';
+      return;
+    }
+    
+    let html = '';
+    let displayedCount = 0;
+    
+    events.forEach((event, index) => {
+      const isHidden = !showing_today_only && index >= 20;
+      const hiddenClass = isHidden ? ' style="display:none" class="hidden-log"' : '';
+      
+      html += `
+        <div class="log-entry ${event.type} ${event.label}"${hiddenClass}>
+          <span class="log-action">
+            ${jp(event.label)}を${event.type === 'start' ? '開始' : '終了'}
+          </span>
+          <span class="log-time">${event.display_time}</span>
+        </div>
+      `;
+      
+      if (!isHidden) displayedCount++;
+    });
+    
+    container.innerHTML = html;
+  }
+
+  function updateToggleButton(kid_id, showing_today_only, today_event_count) {
+    const toggle = document.getElementById(`toggle-${kid_id}`);
+    if (showing_today_only) {
+      toggle.textContent = '最新20件表示';
+      toggle.classList.add('active');
+    } else {
+      const hiddenCount = Math.max(0, today_event_count - 20);
+      if (hiddenCount > 0) {
+        toggle.textContent = `本日全件表示 (+${hiddenCount}件)`;
+      } else {
+        toggle.textContent = '本日全件表示';
+      }
+      toggle.classList.remove('active');
+    }
+  }
+
+  function toggleLogs(kid_id) {
+    const toggle = document.getElementById(`toggle-${kid_id}`);
+    const isShowingToday = toggle.classList.contains('active');
+    
+    // 現在が「本日全件表示」なら「最新20件」に、逆なら「本日全件表示」に切り替え
+    loadActivityLogs(kid_id, !isShowingToday);
   }
   window.addEventListener("load", initPage);
 </script>
