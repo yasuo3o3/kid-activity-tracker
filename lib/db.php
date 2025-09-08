@@ -30,8 +30,8 @@ function db(): PDO {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(kid_id) REFERENCES kids(id) ON DELETE CASCADE
     );");
-    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_sessions_kid_started ON sessions(kid_id, started_at DESC);");
-    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_sessions_open ON sessions(kid_id) WHERE ended_at IS NULL;");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_sessions_kid_started ON sessions(kid_id, started_at);");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_sessions_open ON sessions(kid_id, ended_at);");
   }
 
   return $pdo;
