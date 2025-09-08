@@ -35,7 +35,7 @@ $id = uuid();
 $pdo->prepare("INSERT INTO sessions (id, kid_id, label, started_at) VALUES (?,?,?,?)")
     ->execute([$id, $kid_id, $label, $nowIso]);
 
-// Pushover通知を送信
+// その日初回動作時のみPushover通知を送信
 $config_path = __DIR__ . '/../config.php';
 $kid_name = 'お子さん'; // デフォルト名
 if (file_exists($config_path)) {
@@ -43,17 +43,19 @@ if (file_exists($config_path)) {
   $kid_name = $config['kids'][$kid_id] ?? 'お子さん';
 }
 
-$activity_jp = [
-  'study' => '勉強',
-  'play'  => '遊び', 
-  'break' => '休憩'
-][$label] ?? $label;
+// 当日の最初のセッションかチェック（JST 00:00 = UTC 15:00）
+$jst_now = time() + 9*3600;
+$today_date = gmdate('Y-m-d', $jst_now);
+$today_start_utc = gmdate('Y-m-d H:i:s', strtotime($today_date . ' 00:00:00') - 9*3600); // JST 00:00をUTCに変換
+$existing_stmt = $pdo->prepare("SELECT COUNT(*) FROM sessions WHERE kid_id=? AND started_at >= ?");
+$existing_stmt->execute([$kid_id, $today_start_utc]);
+$is_first_today = $existing_stmt->fetchColumn() == 1; // 今挿入した分が1つ目
 
-$message = "{$kid_name}が{$activity_jp}を開始しました";
-$time_jst = gmdate('H:i', time() + 9*3600);
-$message .= "（{$time_jst}）";
-
-// 通知送信（失敗してもAPIレスポンスには影響させない）
-send_pushover_notification($message);
+if ($is_first_today) {
+  $time_jst = gmdate('H:i', time() + 9*3600);
+  $message = "{$kid_name}が今日初めて活動を開始しました（{$time_jst}）";
+  // 通知送信（失敗してもAPIレスポンスには影響させない）
+  send_pushover_notification($message);
+}
 
 json_ok(['ok'=>true, 'current'=>['label'=>$label,'started_at'=>$nowIso]]);
