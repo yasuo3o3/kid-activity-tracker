@@ -38,6 +38,11 @@
     .break-bg { background:#f59e0b; }
     .weekly-monthly { margin-top:12px; padding:12px 16px; border:1px solid #d1d5db; border-radius:10px; background:#fafafa; }
     .period-total { font-size:0.9rem; padding:4px 0; color:#374151; }
+    .kid-card { margin-bottom:20px; padding:16px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; }
+    .kid-name { font-size:1.3rem; font-weight:700; margin-bottom:8px; color:#374151; }
+    .kid-current { font-size:1.1rem; margin-bottom:12px; padding:8px 12px; border-radius:8px; background:#fff; }
+    .kid-stats { display:grid; gap:8px; }
+    .kid-stat { font-size:0.95rem; padding:6px 12px; border-radius:6px; background:#fff; }
     .note { margin-top:12px; font-size:.9rem; opacity:.8; }
   </style>
 </head>
@@ -46,7 +51,8 @@
     <h1 id="title">これから何する？</h1>
   </header>
   <main class="wrap">
-    <div class="buttons">
+    <!-- 子ども用画面のボタン -->
+    <div id="kid-screen" class="buttons">
       <div class="activity-row">
         <button id="study-btn" class="btn study" onclick="startActivity('study')">勉強する</button>
         <button id="study-stop" class="btn study-stop" onclick="stopActivity()" disabled>終了</button>
@@ -61,21 +67,27 @@
       </div>
     </div>
 
-    <section class="status">
+    <!-- 子ども用画面の状態表示 -->
+    <section id="kid-status" class="status">
       <div id="now">今：—</div>
       <div id="today">今日：— 分</div>
     </section>
 
-    <section class="activity-totals">
+    <section id="kid-activity-totals" class="activity-totals">
       <div id="study-total" class="activity-total study-bg">勉強：— 分</div>
       <div id="play-total" class="activity-total play-bg">遊び：— 分</div>
       <div id="break-total" class="activity-total break-bg">休憩：— 分</div>
     </section>
 
-    <section class="weekly-monthly">
+    <section id="kid-weekly-monthly" class="weekly-monthly">
       <div id="week-total" class="period-total">【今週】勉強：— 分 ／ 遊び：— 分 ／ 休憩：— 分</div>
       <div id="month-total" class="period-total">【今月】勉強：— 分 ／ 遊び：— 分 ／ 休憩：— 分</div>
     </section>
+
+    <!-- 親用画面 -->
+    <div id="parent-screen" style="display:none;">
+      <div id="all-kids-status"></div>
+    </div>
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
   </main>
@@ -188,6 +200,8 @@
   async function initPage() {
     const kid_id = getKidId();
     if (kid_id) {
+      // 子ども用画面を表示
+      showKidScreen();
       // kid_idから名前を取得してタイトルを設定
       try {
         const r = await fetch(api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`), { method:"GET" });
@@ -200,8 +214,69 @@
         console.error("名前の取得に失敗:", e);
       }
       refresh();
+    } else {
+      // 親用画面を表示
+      showParentScreen();
     }
     if ("serviceWorker" in navigator) navigator.serviceWorker.register(`${BASE}/pwa/service-worker.js`);
+  }
+
+  function showKidScreen() {
+    document.getElementById("kid-screen").style.display = "block";
+    document.getElementById("kid-status").style.display = "flex";
+    document.getElementById("kid-activity-totals").style.display = "grid";
+    document.getElementById("kid-weekly-monthly").style.display = "block";
+    document.getElementById("parent-screen").style.display = "none";
+  }
+
+  function showParentScreen() {
+    document.getElementById("kid-screen").style.display = "none";
+    document.getElementById("kid-status").style.display = "none";
+    document.getElementById("kid-activity-totals").style.display = "none";
+    document.getElementById("kid-weekly-monthly").style.display = "none";
+    document.getElementById("parent-screen").style.display = "block";
+    
+    document.getElementById("title").textContent = "みんなの活動状況";
+    document.getElementById("note").textContent = "※ 全員の活動を一覧表示しています。";
+    
+    loadAllKidsStatus();
+  }
+
+  async function loadAllKidsStatus() {
+    try {
+      const r = await fetch(api("all_stats.php"), { method:"GET" });
+      const j = await r.json();
+      if (j.ok) {
+        displayAllKidsStatus(j.kids);
+      }
+    } catch (e) {
+      console.error("全員の状況取得に失敗:", e);
+      document.getElementById("all-kids-status").innerHTML = "<p>データの読み込みに失敗しました</p>";
+    }
+  }
+
+  function displayAllKidsStatus(kids) {
+    const container = document.getElementById("all-kids-status");
+    let html = "";
+    
+    kids.forEach(kid => {
+      const currentActivity = kid.now.label ? `今：${jp(kid.now.label)}（${toJstHHmm(kid.now.since)}開始）` : "今：休憩中";
+      
+      html += `
+        <div class="kid-card">
+          <div class="kid-name">${kid.kid_name}</div>
+          <div class="kid-current">${currentActivity}</div>
+          <div class="kid-stats">
+            <div class="kid-stat">今日合計：${formatTime(kid.totals.today_sec||0)}</div>
+            <div class="kid-stat">勉強：${formatTime(kid.today_by_activity.study_sec||0)} / 遊び：${formatTime(kid.today_by_activity.play_sec||0)} / 休憩：${formatTime(kid.today_by_activity.break_sec||0)}</div>
+            <div class="kid-stat">【今週】勉強：${formatTime(kid.week_by_activity.study_sec||0)} / 遊び：${formatTime(kid.week_by_activity.play_sec||0)} / 休憩：${formatTime(kid.week_by_activity.break_sec||0)}</div>
+            <div class="kid-stat">【今月】勉強：${formatTime(kid.month_by_activity.study_sec||0)} / 遊び：${formatTime(kid.month_by_activity.play_sec||0)} / 休憩：${formatTime(kid.month_by_activity.break_sec||0)}</div>
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
   }
   window.addEventListener("load", initPage);
 </script>
