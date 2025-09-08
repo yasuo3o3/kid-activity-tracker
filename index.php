@@ -31,7 +31,7 @@
 </head>
 <body>
   <header class="wrap">
-    <h1>これから何する？</h1>
+    <h1 id="title">これから何する？</h1>
   </header>
   <main class="wrap">
     <div class="buttons">
@@ -40,39 +40,25 @@
       <button class="btn break" onclick="send('break')">休憩する</button>
     </div>
 
-    <div class="kid">
-      <label for="kid">kid_id（UUID）</label>
-      <input id="kid" type="text" placeholder="例: 121adf20-..." />
-      <button class="save" onclick="saveKid()">保存</button>
-    </div>
-
     <section class="status">
       <div id="now">今：—</div>
       <div id="today">今日：— 分</div>
     </section>
 
-    <div class="note">※ まず kid_id を入力して保存 → ボタンを押すと記録されます。</div>
+    <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
   </main>
 
 <script>
   const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
   const api = (p) => `${BASE}/api/${p}`;
 
-  function loadKid() {
-    const v = localStorage.getItem("kid_id");
-    const input = document.getElementById("kid");
-    if (v) input.value = v;
-    return v || "";
-  }
-  function saveKid() {
-    const v = document.getElementById("kid").value.trim();
-    if (!v) return alert("kid_id を入力してください");
-    localStorage.setItem("kid_id", v);
-    alert("保存しました");
+  function getKidId() {
+    const params = new URLSearchParams(location.search);
+    return params.get('kid') || '';
   }
   async function send(label) {
-    const kid_id = loadKid();
-    if (!kid_id) return alert("kid_id を先に保存してください");
+    const kid_id = getKidId();
+    if (!kid_id) return alert("URLに ?kid=UUID を指定してください");
     try {
       const r = await fetch(api("switch.php"), {
         method:"POST",
@@ -88,7 +74,7 @@
     }
   }
   async function refresh() {
-    const kid_id = loadKid();
+    const kid_id = getKidId();
     if (!kid_id) return;
     const r = await fetch(api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`), { method:"GET" });
     const j = await r.json();
@@ -105,7 +91,25 @@
     const j = new Date(d.getTime() + 9*3600*1000);
     return String(j.getUTCHours()).padStart(2,"0")+":"+String(j.getUTCMinutes()).padStart(2,"0");
   }
-  window.addEventListener("load", () => { loadKid(); refresh(); if ("serviceWorker" in navigator) navigator.serviceWorker.register(`${BASE}/pwa/service-worker.js`); });
+  async function initPage() {
+    const kid_id = getKidId();
+    if (kid_id) {
+      // kid_idから名前を取得してタイトルを設定
+      try {
+        const r = await fetch(api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`), { method:"GET" });
+        const j = await r.json();
+        if (j.ok && j.kid_name) {
+          document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
+          document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;
+        }
+      } catch (e) {
+        console.error("名前の取得に失敗:", e);
+      }
+      refresh();
+    }
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register(`${BASE}/pwa/service-worker.js`);
+  }
+  window.addEventListener("load", initPage);
 </script>
 </body>
 </html>

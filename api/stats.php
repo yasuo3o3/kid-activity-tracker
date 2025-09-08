@@ -9,6 +9,13 @@ $kid_id = $_GET['kid_id'] ?? '';
 if (!$kid_id) json_err('kid_id required', 400);
 
 $pdo = db();
+
+// 子供の名前を取得
+$kidStmt = $pdo->prepare("SELECT display_name FROM kids WHERE id = ?");
+$kidStmt->execute([$kid_id]);
+$kidRow = $kidStmt->fetch();
+$kid_name = $kidRow ? $kidRow['display_name'] : null;
+
 $ranges = jst_ranges();
 $minStart = strtotime($ranges['thisMonth']['startUtc']);
 $maxEnd   = time() + 60; // 未来少し猶予
@@ -47,6 +54,7 @@ foreach ($rows as $r) {
 json_ok([
   'ok'=>true,
   'kid_id'=>$kid_id,
+  'kid_name'=>$kid_name,
   'now'=> $open ?? ['label'=>null,'since'=>null],
   'totals'=>[
     'today_sec'=>$today,
