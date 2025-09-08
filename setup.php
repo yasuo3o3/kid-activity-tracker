@@ -5,7 +5,7 @@
 // - setup.php?reset=1: 全削除してリセット
 // - setup.php?add=名前: 1名だけ追加
 
-header('Content-Type: text/plain; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8');
 require_once 'lib/db.php';
 
 $reset = isset($_GET['reset']) && $_GET['reset'] === '1';
@@ -14,6 +14,7 @@ $addOne = $_GET['add'] ?? '';
 try {
   $pdo = db();
   
+  echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Setup</title><style>body{font-family:monospace;white-space:pre-wrap;}</style></head><body>";
   echo "=== Kid Activity Tracker Web Setup ===\n\n";
   
   // リセット処理
@@ -105,12 +106,24 @@ try {
   }
   
   echo "\n各子供専用のURL:\n";
+  
+  // 現在のドメインとパスを取得
+  $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+  $domain = $_SERVER['HTTP_HOST'];
+  $script_path = dirname($_SERVER['SCRIPT_NAME']);
+  $base_url = $protocol . $domain . $script_path;
+  
   $stmt = $pdo->query("SELECT id, display_name FROM kids WHERE archived = 0 ORDER BY created_at");
   while ($row = $stmt->fetch()) {
-    echo "  - {$row['display_name']}: ?kid={$row['id']}\n";
+    $kid_url = "?kid={$row['id']}";
+    $full_url = $base_url . "/" . $kid_url;
+    echo "  - {$row['display_name']}: <a href=\"{$full_url}\" target=\"_blank\">{$kid_url}</a>\n";
   }
+  
+  echo "</body></html>";
   
 } catch (Exception $e) {
   echo "エラーが発生しました: " . $e->getMessage() . "\n";
+  echo "</body></html>";
   exit(1);
 }
