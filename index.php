@@ -305,7 +305,7 @@
       const hiddenClass = isHidden ? ' style="display:none" class="hidden-log"' : '';
       
       html += `
-        <div class="log-entry ${event.type} ${event.label}"${hiddenClass}>
+        <div class="log-entry log-${event.type} log-${event.label}"${hiddenClass}>
           <span class="log-action">
             ${jp(event.label)}を${event.type === 'start' ? '開始' : '終了'}
           </span>

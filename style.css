@@ -253,7 +253,6 @@ h1 {
   padding: 16px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: #ffffff;
 }
 
 .logs-header {
@@ -316,32 +315,31 @@ h1 {
   font-size: 0.8rem;
 }
 
-.log-entry.start .log-action {
+.log-entry.log-start .log-action {
   color: #059669;
   font-weight: 600;
 }
 
-.log-entry.end .log-action {
+.log-entry.log-end .log-action {
   color: #dc2626;
   font-weight: 600;
 }
 
-.log-entry.study {
+.log-entry.log-study {
   border-left: 4px solid #3b82f6;
 }
 
-.log-entry.play {
+.log-entry.log-play {
   border-left: 4px solid #22c55e;
 }
 
-.log-entry.break {
+.log-entry.log-break {
   border-left: 4px solid #f59e0b;
 }
 
 /* Dark Mode for Logs */
 @media (prefers-color-scheme: dark) {
   .activity-logs {
-    background: #1f2937;
     border-color: #374151;
   }
   
