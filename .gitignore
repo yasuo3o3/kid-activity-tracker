@@ -63,3 +63,6 @@ database.sqlite-shm
 #Claude
 CLAUDE.md
 /.docs/
+/.claude/
+config.php
+/.vscode/
