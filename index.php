@@ -31,6 +31,11 @@
     .kid input { padding:10px 12px; border-radius:10px; border:1px solid #ccc; font-size:1rem; }
     .save { padding:10px 14px; border-radius:10px; border:none; background:#6b7280; color:#fff; font-weight:700; cursor:pointer; }
     .status { margin-top:22px; padding:14px 16px; border-radius:12px; background:rgba(125,125,125,.1); display:flex; gap:20px; justify-content:space-between; font-size:1.05rem; }
+    .activity-totals { margin-top:12px; display:grid; gap:8px; }
+    .activity-total { padding:10px 16px; border-radius:10px; font-size:1rem; font-weight:600; color:#fff; text-align:center; }
+    .study-bg { background:#3b82f6; }
+    .play-bg { background:#22c55e; }
+    .break-bg { background:#f59e0b; }
     .note { margin-top:12px; font-size:.9rem; opacity:.8; }
   </style>
 </head>
@@ -57,6 +62,12 @@
     <section class="status">
       <div id="now">今：—</div>
       <div id="today">今日：— 分</div>
+    </section>
+
+    <section class="activity-totals">
+      <div id="study-total" class="activity-total study-bg">勉強：— 分</div>
+      <div id="play-total" class="activity-total play-bg">遊び：— 分</div>
+      <div id="break-total" class="activity-total break-bg">休憩：— 分</div>
     </section>
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
@@ -131,6 +142,14 @@
         j.now.label ? `今：${jp(j.now.label)}（${toJstHHmm(j.now.since)}開始）` : "今：—";
       document.getElementById("today").textContent =
         `今日：${Math.floor((j.totals.today_sec||0)/60)} 分`;
+      
+      // 活動別累計時間を表示
+      document.getElementById("study-total").textContent =
+        `勉強：${Math.floor((j.today_by_activity.study_sec||0)/60)} 分`;
+      document.getElementById("play-total").textContent =
+        `遊び：${Math.floor((j.today_by_activity.play_sec||0)/60)} 分`;
+      document.getElementById("break-total").textContent =
+        `休憩：${Math.floor((j.today_by_activity.break_sec||0)/60)} 分`;
       
       updateButtons(j.now.label || null);
     }

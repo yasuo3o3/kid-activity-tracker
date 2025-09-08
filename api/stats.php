@@ -35,15 +35,25 @@ $stmt->execute([$kid_id, $maxEnd, $minStart, $minStart]);
 $rows = $stmt->fetchAll();
 
 $today=0; $yesterday=0; $month=0;
+$today_by_activity = ['study'=>0, 'play'=>0, 'break'=>0];
 $now = time();
 
 foreach ($rows as $r) {
   $s = strtotime($r['started_at']);
   $e = $r['ended_at'] ? strtotime($r['ended_at']) : $now;
 
-  $today     += overlap_seconds($s, $e, strtotime($ranges['today']['startUtc']),     strtotime($ranges['today']['endUtc']));
-  $yesterday += overlap_seconds($s, $e, strtotime($ranges['yesterday']['startUtc']), strtotime($ranges['yesterday']['endUtc']));
-  $month     += overlap_seconds($s, $e, strtotime($ranges['thisMonth']['startUtc']), strtotime($ranges['thisMonth']['endUtc']));
+  $today_sec = overlap_seconds($s, $e, strtotime($ranges['today']['startUtc']),     strtotime($ranges['today']['endUtc']));
+  $yesterday_sec = overlap_seconds($s, $e, strtotime($ranges['yesterday']['startUtc']), strtotime($ranges['yesterday']['endUtc']));
+  $month_sec = overlap_seconds($s, $e, strtotime($ranges['thisMonth']['startUtc']), strtotime($ranges['thisMonth']['endUtc']));
+  
+  $today += $today_sec;
+  $yesterday += $yesterday_sec;
+  $month += $month_sec;
+  
+  // 今日の活動別累計を計算
+  if (isset($today_by_activity[$r['label']])) {
+    $today_by_activity[$r['label']] += $today_sec;
+  }
 }
 
 $open = null;
@@ -61,4 +71,9 @@ json_ok([
     'yesterday_sec'=>$yesterday,
     'this_month_sec'=>$month
   ],
+  'today_by_activity'=>[
+    'study_sec'=>$today_by_activity['study'],
+    'play_sec'=>$today_by_activity['play'],
+    'break_sec'=>$today_by_activity['break']
+  ]
 ]);
