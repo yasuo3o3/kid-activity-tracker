@@ -141,15 +141,15 @@
       document.getElementById("now").textContent =
         j.now.label ? `今：${jp(j.now.label)}（${toJstHHmm(j.now.since)}開始）` : "今：—";
       document.getElementById("today").textContent =
-        `今日：${Math.floor((j.totals.today_sec||0)/60)} 分`;
+        `今日：${Math.ceil((j.totals.today_sec||0)/60)} 分`;
       
       // 活動別累計時間を表示
       document.getElementById("study-total").textContent =
-        `勉強：${Math.floor((j.today_by_activity.study_sec||0)/60)} 分`;
+        `勉強：${Math.ceil((j.today_by_activity.study_sec||0)/60)} 分`;
       document.getElementById("play-total").textContent =
-        `遊び：${Math.floor((j.today_by_activity.play_sec||0)/60)} 分`;
+        `遊び：${Math.ceil((j.today_by_activity.play_sec||0)/60)} 分`;
       document.getElementById("break-total").textContent =
-        `休憩：${Math.floor((j.today_by_activity.break_sec||0)/60)} 分`;
+        `休憩：${Math.ceil((j.today_by_activity.break_sec||0)/60)} 分`;
       
       updateButtons(j.now.label || null);
     }
