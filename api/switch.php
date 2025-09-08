@@ -52,8 +52,7 @@ $existing_stmt->execute([$kid_id, $today_start_utc]);
 $is_first_today = $existing_stmt->fetchColumn() == 1; // 今挿入した分が1つ目
 
 if ($is_first_today) {
-  $time_jst = gmdate('H:i', time() + 9*3600);
-  $message = "{$kid_name}が今日初めて活動を開始しました（{$time_jst}）";
+  $message = "{$kid_name}がActivityを開始しました";
   // 通知送信（失敗してもAPIレスポンスには影響させない）
   send_pushover_notification($message);
 }
