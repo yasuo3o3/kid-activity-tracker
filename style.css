@@ -1,0 +1,248 @@
+/* Kid Activity Tracker Styles */
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+h1 {
+  font-size: 1.6rem;
+  text-align: center;
+  margin: 12px 0 8px;
+}
+
+/* Buttons */
+.buttons {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 20px;
+}
+
+.activity-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+
+.btn {
+  font-size: 1.25rem;
+  padding: 20px 16px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  min-height: 72px;
+  font-weight: 700;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Activity Colors */
+.study {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.play {
+  background: #22c55e;
+  color: #fff;
+}
+
+.break {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.study-stop {
+  background: #2563eb;
+  color: #fff;
+}
+
+.play-stop {
+  background: #16a34a;
+  color: #fff;
+}
+
+.break-stop {
+  background: #d97706;
+  color: #fff;
+}
+
+/* Status Display */
+.status {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(125,125,125,.1);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  font-size: 1.05rem;
+}
+
+/* Activity Totals */
+.activity-totals {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.activity-total {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+}
+
+.study-bg {
+  background: #3b82f6;
+}
+
+.play-bg {
+  background: #22c55e;
+}
+
+.break-bg {
+  background: #f59e0b;
+}
+
+/* Weekly/Monthly Display */
+.weekly-monthly {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.period-total {
+  font-size: 0.9rem;
+  padding: 4px 0;
+  color: #374151;
+}
+
+/* Parent Screen - Kid Cards */
+.kid-card {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.kid-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.kid-current {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+}
+
+.kid-stats {
+  display: grid;
+  gap: 8px;
+}
+
+.kid-stat {
+  font-size: 0.95rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .kid-card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .kid-name {
+    color: #f9fafb;
+  }
+  
+  .kid-current {
+    background: #374151;
+    color: #f9fafb;
+  }
+  
+  .kid-stat {
+    background: #374151;
+    color: #f9fafb;
+  }
+  
+  .weekly-monthly {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .period-total {
+    color: #d1d5db;
+  }
+}
+
+/* Miscellaneous */
+.kid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 8px 10px;
+  align-items: center;
+}
+
+.kid label {
+  grid-column: 1 / -1;
+  font-size: .95rem;
+  opacity: .9;
+}
+
+.kid input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.save {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #6b7280;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.note {
+  margin-top: 12px;
+  font-size: .9rem;
+  opacity: .8;
+}
