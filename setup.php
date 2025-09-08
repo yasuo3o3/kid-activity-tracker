@@ -4,11 +4,19 @@
 
 require_once 'lib/db.php';
 
-// 登録したい子供の名前
-$kids = [
-  'やすお君',
-  'みさきちゃん'
-];
+// config.phpから子供の名前を取得
+$config = require 'config.php';
+$kids = array_values($config['kids_setup'] ?? []);
+
+if (empty($kids)) {
+  echo "エラー: config.phpに'kids_setup'配列を設定してください。\n";
+  echo "例:\n";
+  echo "'kids_setup' => [\n";
+  echo "  '子供1の名前',\n";
+  echo "  '子供2の名前'\n";
+  echo "],\n";
+  exit(1);
+}
 
 echo "=== Kid Activity Tracker 初期化 ===\n\n";
 
