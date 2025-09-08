@@ -225,6 +225,7 @@
     const container = document.getElementById("all-kids-status");
     let html = "";
     
+    // 累計情報セクション
     kids.forEach(kid => {
       const currentActivity = kid.now.label ? `今：${jp(kid.now.label)}（${toJstHHmm(kid.now.since)}開始）` : "今：休憩中";
       
@@ -238,14 +239,20 @@
             <div class="kid-stat">【今週】勉強：${formatTime(kid.week_by_activity.study_sec||0)} / 遊び：${formatTime(kid.week_by_activity.play_sec||0)} / 休憩：${formatTime(kid.week_by_activity.break_sec||0)}</div>
             <div class="kid-stat">【今月】勉強：${formatTime(kid.month_by_activity.study_sec||0)} / 遊び：${formatTime(kid.month_by_activity.play_sec||0)} / 休憩：${formatTime(kid.month_by_activity.break_sec||0)}</div>
           </div>
-          <div class="activity-logs">
-            <div class="logs-header">
-              <div class="logs-title">${kid.kid_name}の活動ログ</div>
-              <button class="logs-toggle" onclick="toggleLogs('${kid.kid_id}')" id="toggle-${kid.kid_id}">本日全件表示</button>
-            </div>
-            <div class="log-list" id="logs-${kid.kid_id}">
-              <div class="log-entry">読み込み中...</div>
-            </div>
+        </div>
+      `;
+    });
+    
+    // ログセクション
+    kids.forEach(kid => {
+      html += `
+        <div class="activity-logs">
+          <div class="logs-header">
+            <div class="logs-title">${kid.kid_name}の活動ログ</div>
+            <button class="logs-toggle" onclick="toggleLogs('${kid.kid_id}')" id="toggle-${kid.kid_id}">本日全件表示</button>
+          </div>
+          <div class="log-list" id="logs-${kid.kid_id}">
+            <div class="log-entry">読み込み中...</div>
           </div>
         </div>
       `;
