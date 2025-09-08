@@ -35,4 +35,25 @@ $id = uuid();
 $pdo->prepare("INSERT INTO sessions (id, kid_id, label, started_at) VALUES (?,?,?,?)")
     ->execute([$id, $kid_id, $label, $nowIso]);
 
+// Pushover通知を送信
+$config_path = __DIR__ . '/../config.php';
+$kid_name = 'お子さん'; // デフォルト名
+if (file_exists($config_path)) {
+  $config = require $config_path;
+  $kid_name = $config['kids'][$kid_id] ?? 'お子さん';
+}
+
+$activity_jp = [
+  'study' => '勉強',
+  'play'  => '遊び', 
+  'break' => '休憩'
+][$label] ?? $label;
+
+$message = "{$kid_name}が{$activity_jp}を開始しました";
+$time_jst = gmdate('H:i', time() + 9*3600);
+$message .= "（{$time_jst}）";
+
+// 通知送信（失敗してもAPIレスポンスには影響させない）
+send_pushover_notification($message);
+
 json_ok(['ok'=>true, 'current'=>['label'=>$label,'started_at'=>$nowIso]]);

@@ -43,11 +43,17 @@ Thumbs.db
 *.user
 *.sln.docstates
 
-# Environment variables
-# Never commit .env files containing secrets.
+# Environment variables and configuration
+# Never commit files containing secrets.
 .env
 .env.local
 .env.*.local
+config.php
+
+# Database files
+database.sqlite
+database.sqlite-wal
+database.sqlite-shm
 
 # Temporary files
 *.tmp

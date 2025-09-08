@@ -38,3 +38,50 @@ function overlap_seconds(int $aStart, int $aEnd, int $bStart, int $bEnd): int {
   $e = min($aEnd,   $bEnd);
   return max(0, (int)floor($e - $s));
 }
+
+function send_pushover_notification(string $message, string $title = 'Kid Activity'): bool {
+  // config.phpから設定を読み込み
+  $config_path = __DIR__ . '/../config.php';
+  if (!file_exists($config_path)) {
+    error_log('Pushover config not found');
+    return false;
+  }
+  
+  $config = require $config_path;
+  $app_token = $config['pushover']['app_token'] ?? '';
+  $user_key = $config['pushover']['user_key'] ?? '';
+  
+  if (!$app_token || !$user_key) {
+    error_log('Pushover tokens not configured');
+    return false;
+  }
+
+  $data = [
+    'token' => $app_token,
+    'user' => $user_key,
+    'message' => $message,
+    'title' => $title,
+    'priority' => 0, // normal priority
+  ];
+
+  $ch = curl_init();
+  curl_setopt_array($ch, [
+    CURLOPT_URL => 'https://api.pushover.net/1/messages.json',
+    CURLOPT_POSTFIELDS => http_build_query($data),
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 10,
+    CURLOPT_SSL_VERIFYPEER => true,
+  ]);
+  
+  $response = curl_exec($ch);
+  $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  
+  if ($http_code === 200 && $response !== false) {
+    $result = json_decode($response, true);
+    return isset($result['status']) && $result['status'] === 1;
+  }
+  
+  error_log("Pushover failed: HTTP $http_code, Response: $response");
+  return false;
+}
