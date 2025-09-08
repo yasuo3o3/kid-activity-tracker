@@ -8,19 +8,49 @@
 - 本番: https://netservice.jp/kid-activity-tracker
 
 ## セットアップ
-1) **Pushover設定**（通知が必要な場合）
-   ```bash
-   cp config.example.php config.php
-   # config.php を編集してPushoverのトークンとユーザーキーを設定
-   ```
-2) `kids` に手で1レコード追加（SQL例）  
-   ```sql
-   -- SQLiteが新規なら最初にアクセスした時点でテーブルは作成済み
-   -- kid_id（UUID）は任意で生成してください
-   INSERT INTO kids (id, display_name) VALUES ('<UUID>', 'やすお君');
-   ```
-3) ブラウザでトップを開き、kid_idにUUIDを保存 → ボタンで切替
-4) 親端末で開き、今日 の表示が増えることを確認
+
+### 1. 基本設定
+```bash
+cp config.example.php config.php
+# config.php を編集してPushoverトークンと子供の名前を設定
+```
+
+### 2. 子供データの登録
+config.php の `kids_setup` 配列に子供の名前を設定：
+```php
+'kids_setup' => [
+  '太郎',
+  '花子'
+],
+```
+
+### 3. 初期化実行
+以下のいずれかでセットアップ：
+
+**新規セットアップ：**
+```
+https://yourdomain.com/kid-activity-tracker/setup.php
+```
+
+**全リセットしてやり直し：**
+```
+https://yourdomain.com/kid-activity-tracker/setup.php?reset=1
+```
+
+**後から1名追加：**
+```
+https://yourdomain.com/kid-activity-tracker/setup.php?add=三郎
+```
+
+### 4. 設定の完了
+1. setup.php の出力から `kids` 配列をコピーして config.php に貼り付け
+2. セキュリティのため `kids_setup` 配列を config.php から削除
+3. 各子供専用のURLをブックマークまたはPWAとして保存
+
+### 5. 動作確認
+- 子供用URL: `?kid=UUID` で各子供の専用画面
+- 管理画面: `/admin.php` (開発予定)
+- ボタンを押して通知が届くことを確認
 
 ## API
 - `POST /api/switch.php { kid_id, label }` - 状態切替 + Pushover通知送信

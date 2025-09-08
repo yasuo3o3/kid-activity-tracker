@@ -1,46 +1,59 @@
 <?php
-// 初期化スクリプト（一回だけ実行）
-// 子供のデータをデータベースに登録し、UUIDを生成する
+// Web対応セットアップスクリプト
+// URLパラメータ:
+// - setup.php: 通常の追加
+// - setup.php?reset=1: 全削除してリセット
+// - setup.php?add=名前: 1名だけ追加
 
+header('Content-Type: text/plain; charset=utf-8');
 require_once 'lib/db.php';
 
-// config.phpから子供の名前を取得
-$config = require 'config.php';
-$kids = array_values($config['kids_setup'] ?? []);
-
-if (empty($kids)) {
-  echo "エラー: config.phpに'kids_setup'配列を設定してください。\n";
-  echo "例:\n";
-  echo "'kids_setup' => [\n";
-  echo "  '子供1の名前',\n";
-  echo "  '子供2の名前'\n";
-  echo "],\n";
-  exit(1);
-}
-
-echo "=== Kid Activity Tracker 初期化 ===\n\n";
+$reset = isset($_GET['reset']) && $_GET['reset'] === '1';
+$addOne = $_GET['add'] ?? '';
 
 try {
   $pdo = db();
   
-  // 既存のデータを確認
+  echo "=== Kid Activity Tracker Web Setup ===\n\n";
+  
+  // リセット処理
+  if ($reset) {
+    echo "全データをリセットします...\n";
+    $pdo->exec("DELETE FROM sessions");
+    $pdo->exec("DELETE FROM kids");
+    echo "✓ 全データを削除しました\n\n";
+  }
+  
+  // 1名追加モード
+  if ($addOne) {
+    echo "「{$addOne}」を追加します...\n\n";
+    $kids = [$addOne];
+  } else {
+    // config.phpから子供の名前を取得
+    $config = require 'config.php';
+    $kids = array_values($config['kids_setup'] ?? []);
+    
+    if (empty($kids)) {
+      echo "エラー: config.phpに'kids_setup'配列を設定するか、?add=名前 で追加してください\n\n";
+      echo "使用例:\n";
+      echo "- setup.php?add=太郎\n";
+      echo "- setup.php?reset=1 (全削除)\n";
+      exit(1);
+    }
+  }
+  
+  // 既存データ表示
   $existing = $pdo->query("SELECT COUNT(*) as count FROM kids")->fetch();
-  if ($existing['count'] > 0) {
-    echo "既に子供のデータが登録されています。\n";
+  if ($existing['count'] > 0 && !$reset) {
     echo "現在の登録:\n";
     $stmt = $pdo->query("SELECT id, display_name FROM kids ORDER BY created_at");
     while ($row = $stmt->fetch()) {
       echo "  - {$row['display_name']}: {$row['id']}\n";
     }
-    echo "\n続行しますか？ (y/N): ";
-    $input = trim(fgets(STDIN));
-    if (strtolower($input) !== 'y') {
-      echo "キャンセルしました。\n";
-      exit(0);
-    }
+    echo "\n";
   }
-
-  echo "子供のデータを登録します...\n\n";
+  
+  echo "子供のデータを登録中...\n\n";
   
   foreach ($kids as $name) {
     // 既に同じ名前が存在するかチェック
