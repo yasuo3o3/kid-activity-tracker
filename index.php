@@ -188,7 +188,7 @@
   }
 
   function showKidScreen() {
-    document.getElementById("kid-screen").style.display = "block";
+    document.getElementById("kid-screen").style.display = "grid";
     document.getElementById("kid-status").style.display = "flex";
     document.getElementById("kid-activity-totals").style.display = "grid";
     document.getElementById("kid-weekly-monthly").style.display = "block";
