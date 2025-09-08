@@ -13,7 +13,7 @@
   <style>
     :root { color-scheme: light dark; }
     body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    .wrap { max-width:640px; margin:0 auto; padding:16px; }
+    .wrap { max-width:640px; margin:0 auto; padding:0; }
     h1 { font-size:1.6rem; text-align:center; margin:12px 0 8px; }
     .buttons { display:grid; gap:12px; margin:16px 0 20px; }
     .activity-row { display:grid; grid-template-columns:2fr 1fr; gap:8px; }
@@ -148,21 +148,21 @@
       document.getElementById("now").textContent =
         j.now.label ? `今：${jp(j.now.label)}（${toJstHHmm(j.now.since)}開始）` : "今：—";
       document.getElementById("today").textContent =
-        `今日：${Math.ceil((j.totals.today_sec||0)/60)} 分`;
+        `今日：${formatTime(j.totals.today_sec||0)}`;
       
       // 活動別累計時間を表示
       document.getElementById("study-total").textContent =
-        `勉強：${Math.ceil((j.today_by_activity.study_sec||0)/60)} 分`;
+        `勉強：${formatTime(j.today_by_activity.study_sec||0)}`;
       document.getElementById("play-total").textContent =
-        `遊び：${Math.ceil((j.today_by_activity.play_sec||0)/60)} 分`;
+        `遊び：${formatTime(j.today_by_activity.play_sec||0)}`;
       document.getElementById("break-total").textContent =
-        `休憩：${Math.ceil((j.today_by_activity.break_sec||0)/60)} 分`;
+        `休憩：${formatTime(j.today_by_activity.break_sec||0)}`;
       
       // 今週・今月の活動別累計時間を表示
       document.getElementById("week-total").textContent =
-        `【今週】勉強：${Math.ceil((j.week_by_activity.study_sec||0)/60)} 分 ／ 遊び：${Math.ceil((j.week_by_activity.play_sec||0)/60)} 分 ／ 休憩：${Math.ceil((j.week_by_activity.break_sec||0)/60)} 分`;
+        `【今週】勉強：${formatTime(j.week_by_activity.study_sec||0)} ／ 遊び：${formatTime(j.week_by_activity.play_sec||0)} ／ 休憩：${formatTime(j.week_by_activity.break_sec||0)}`;
       document.getElementById("month-total").textContent =
-        `【今月】勉強：${Math.ceil((j.month_by_activity.study_sec||0)/60)} 分 ／ 遊び：${Math.ceil((j.month_by_activity.play_sec||0)/60)} 分 ／ 休憩：${Math.ceil((j.month_by_activity.break_sec||0)/60)} 分`;
+        `【今月】勉強：${formatTime(j.month_by_activity.study_sec||0)} ／ 遊び：${formatTime(j.month_by_activity.play_sec||0)} ／ 休憩：${formatTime(j.month_by_activity.break_sec||0)}`;
       
       updateButtons(j.now.label || null);
     }
@@ -172,6 +172,18 @@
     const d = new Date(iso);
     const j = new Date(d.getTime() + 9*3600*1000);
     return String(j.getUTCHours()).padStart(2,"0")+":"+String(j.getUTCMinutes()).padStart(2,"0");
+  }
+  function formatTime(seconds){
+    const minutes = Math.ceil(seconds / 60);
+    if (minutes < 60) {
+      return `${minutes}分`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) {
+      return `${hours}時間`;
+    }
+    return `${hours}時間${remainingMinutes}分`;
   }
   async function initPage() {
     const kid_id = getKidId();
