@@ -16,11 +16,14 @@
     .wrap { max-width:640px; margin:0 auto; padding:16px; }
     h1 { font-size:1.6rem; text-align:center; margin:12px 0 8px; }
     .buttons { display:grid; gap:12px; margin:16px 0 20px; }
+    .activity-row { display:grid; grid-template-columns:2fr 1fr; gap:8px; }
     .btn { font-size:1.25rem; padding:20px 16px; border-radius:14px; border:none; cursor:pointer; width:100%; min-height:72px; font-weight:700; }
     .btn:active { transform:scale(0.98); }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; }
     .study { background:#3b82f6; color:#fff; }
     .play { background:#22c55e; color:#fff; }
     .break { background:#f59e0b; color:#fff; }
+    .stop { background:#dc2626; color:#fff; }
     .kid { display:grid; grid-template-columns:1fr auto; grid-template-rows:auto auto; gap:8px 10px; align-items:center; }
     .kid label { grid-column:1 / -1; font-size:.95rem; opacity:.9; }
     .kid input { padding:10px 12px; border-radius:10px; border:1px solid #ccc; font-size:1rem; }
@@ -35,9 +38,18 @@
   </header>
   <main class="wrap">
     <div class="buttons">
-      <button class="btn study" onclick="send('study')">勉強する</button>
-      <button class="btn play"  onclick="send('play')">遊ぶ</button>
-      <button class="btn break" onclick="send('break')">休憩する</button>
+      <div class="activity-row">
+        <button id="study-btn" class="btn study" onclick="startActivity('study')">勉強する</button>
+        <button id="study-stop" class="btn stop" onclick="stopActivity()" disabled>終了</button>
+      </div>
+      <div class="activity-row">
+        <button id="play-btn" class="btn play" onclick="startActivity('play')">遊ぶ</button>
+        <button id="play-stop" class="btn stop" onclick="stopActivity()" disabled>終了</button>
+      </div>
+      <div class="activity-row">
+        <button id="break-btn" class="btn break" onclick="startActivity('break')">休憩する</button>
+        <button id="break-stop" class="btn stop" onclick="stopActivity()" disabled>終了</button>
+      </div>
     </div>
 
     <section class="status">
@@ -56,7 +68,7 @@
     const params = new URLSearchParams(location.search);
     return params.get('kid') || '';
   }
-  async function send(label) {
+  async function startActivity(label) {
     const kid_id = getKidId();
     if (!kid_id) return alert("URLに ?kid=UUID を指定してください");
     try {
@@ -68,11 +80,45 @@
       const j = await r.json();
       if (!r.ok || !j.ok) throw new Error(j.error || "failed");
       await refresh();
-      alert("記録しました");
+      alert(`${jp(label)}を開始しました`);
     } catch (e) {
       alert("エラー: " + e.message);
     }
   }
+
+  async function stopActivity() {
+    const kid_id = getKidId();
+    if (!kid_id) return alert("URLに ?kid=UUID を指定してください");
+    try {
+      const r = await fetch(api("stop.php"), {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ kid_id })
+      });
+      const j = await r.json();
+      if (!r.ok || !j.ok) throw new Error(j.error || "failed");
+      await refresh();
+      alert("終了しました");
+    } catch (e) {
+      alert("エラー: " + e.message);
+    }
+  }
+  function updateButtons(currentLabel) {
+    const activities = ['study', 'play', 'break'];
+    activities.forEach(activity => {
+      const startBtn = document.getElementById(`${activity}-btn`);
+      const stopBtn = document.getElementById(`${activity}-stop`);
+      
+      if (currentLabel === activity) {
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      } else {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    });
+  }
+
   async function refresh() {
     const kid_id = getKidId();
     if (!kid_id) return;
@@ -83,6 +129,8 @@
         j.now.label ? `今：${jp(j.now.label)}（${toJstHHmm(j.now.since)}開始）` : "今：—";
       document.getElementById("today").textContent =
         `今日：${Math.floor((j.totals.today_sec||0)/60)} 分`;
+      
+      updateButtons(j.now.label || null);
     }
   }
   function jp(label){ return label==="study"?"勉強":label==="play"?"遊び":"休憩"; }
