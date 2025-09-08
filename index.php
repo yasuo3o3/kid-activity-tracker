@@ -23,7 +23,9 @@
     .study { background:#3b82f6; color:#fff; }
     .play { background:#22c55e; color:#fff; }
     .break { background:#f59e0b; color:#fff; }
-    .stop { background:#dc2626; color:#fff; }
+    .study-stop { background:#2563eb; color:#fff; }
+    .play-stop { background:#16a34a; color:#fff; }
+    .break-stop { background:#d97706; color:#fff; }
     .kid { display:grid; grid-template-columns:1fr auto; grid-template-rows:auto auto; gap:8px 10px; align-items:center; }
     .kid label { grid-column:1 / -1; font-size:.95rem; opacity:.9; }
     .kid input { padding:10px 12px; border-radius:10px; border:1px solid #ccc; font-size:1rem; }
@@ -40,15 +42,15 @@
     <div class="buttons">
       <div class="activity-row">
         <button id="study-btn" class="btn study" onclick="startActivity('study')">勉強する</button>
-        <button id="study-stop" class="btn stop" onclick="stopActivity()" disabled>終了</button>
+        <button id="study-stop" class="btn study-stop" onclick="stopActivity()" disabled>終了</button>
       </div>
       <div class="activity-row">
         <button id="play-btn" class="btn play" onclick="startActivity('play')">遊ぶ</button>
-        <button id="play-stop" class="btn stop" onclick="stopActivity()" disabled>終了</button>
+        <button id="play-stop" class="btn play-stop" onclick="stopActivity()" disabled>終了</button>
       </div>
       <div class="activity-row">
         <button id="break-btn" class="btn break" onclick="startActivity('break')">休憩する</button>
-        <button id="break-stop" class="btn stop" onclick="stopActivity()" disabled>終了</button>
+        <button id="break-stop" class="btn break-stop" onclick="stopActivity()" disabled>終了</button>
       </div>
     </div>
 
