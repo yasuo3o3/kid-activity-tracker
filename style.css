@@ -295,7 +295,6 @@ h1 {
   overflow-y: auto;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: #fafafa;
 }
 
 .log-entry {
@@ -311,9 +310,6 @@ h1 {
   border-bottom: none;
 }
 
-.log-action {
-  color: #374151;
-}
 
 .log-time {
   color: #6b7280;
@@ -369,7 +365,6 @@ h1 {
   }
   
   .log-list {
-    background: #374151;
     border-color: #4b5563;
   }
   
@@ -377,9 +372,6 @@ h1 {
     border-color: #4b5563;
   }
   
-  .log-action {
-    color: #f9fafb;
-  }
   
   .log-time {
     color: #9ca3af;
