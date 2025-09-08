@@ -40,9 +40,19 @@
     .period-total { font-size:0.9rem; padding:4px 0; color:#374151; }
     .kid-card { margin-bottom:20px; padding:16px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; }
     .kid-name { font-size:1.3rem; font-weight:700; margin-bottom:8px; color:#374151; }
-    .kid-current { font-size:1.1rem; margin-bottom:12px; padding:8px 12px; border-radius:8px; background:#fff; }
+    .kid-current { font-size:1.1rem; margin-bottom:12px; padding:8px 12px; border-radius:8px; background:#fff; color:#374151; }
     .kid-stats { display:grid; gap:8px; }
-    .kid-stat { font-size:0.95rem; padding:6px 12px; border-radius:6px; background:#fff; }
+    .kid-stat { font-size:0.95rem; padding:6px 12px; border-radius:6px; background:#fff; color:#374151; }
+    
+    /* ダークモード対応 */
+    @media (prefers-color-scheme: dark) {
+      .kid-card { background:#1f2937; border-color:#374151; }
+      .kid-name { color:#f9fafb; }
+      .kid-current { background:#374151; color:#f9fafb; }
+      .kid-stat { background:#374151; color:#f9fafb; }
+      .weekly-monthly { background:#1f2937; border-color:#374151; }
+      .period-total { color:#d1d5db; }
+    }
     .note { margin-top:12px; font-size:.9rem; opacity:.8; }
   </style>
 </head>
