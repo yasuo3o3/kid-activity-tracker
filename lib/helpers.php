@@ -19,17 +19,24 @@ function allow_cors_options(): void {
     exit;
   }
 }
-// JSTの「今日/昨日/今月」範囲（UTC文字列で返却）
+// JSTの「今日/昨日/今週/今月」範囲（UTC文字列で返却）
 function jst_ranges(): array {
   $now = time();
   $jst = $now + 9*3600;
   $y = (int)gmdate('Y',$jst); $m=(int)gmdate('n',$jst); $d=(int)gmdate('j',$jst);
   $day0 = gmmktime(0,0,0,$m,$d,$y);
   $month0 = gmmktime(0,0,0,$m,1,$y);
+  
+  // 今週の開始（月曜日00:00）を計算
+  $dayOfWeek = (int)gmdate('w', $jst); // 0=日曜, 1=月曜, ..., 6=土曜
+  $daysFromMonday = ($dayOfWeek === 0) ? 6 : ($dayOfWeek - 1); // 月曜からの日数
+  $thisMonday = $day0 - ($daysFromMonday * 24 * 3600);
+  
   return [
     'nowUtc'    => gmdate('c', $now),
     'today'     => ['startUtc'=>gmdate('c',$day0-9*3600),    'endUtc'=>gmdate('c',$now)],
     'yesterday' => ['startUtc'=>gmdate('c',$day0-24*3600-9*3600), 'endUtc'=>gmdate('c',$day0-9*3600)],
+    'thisWeek'  => ['startUtc'=>gmdate('c',$thisMonday-9*3600), 'endUtc'=>gmdate('c',$now)],
     'thisMonth' => ['startUtc'=>gmdate('c',$month0-9*3600), 'endUtc'=>gmdate('c',$now)],
   ];
 }

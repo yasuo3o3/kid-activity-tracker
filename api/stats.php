@@ -17,7 +17,7 @@ $kidRow = $kidStmt->fetch();
 $kid_name = $kidRow ? $kidRow['display_name'] : null;
 
 $ranges = jst_ranges();
-$minStart = strtotime($ranges['thisMonth']['startUtc']);
+$minStart = strtotime($ranges['thisWeek']['startUtc']); // 今週から今月までカバー
 $maxEnd   = time() + 60; // 未来少し猶予
 
 // 今月に関係ありそうなセッション取得
@@ -34,8 +34,10 @@ $stmt = $pdo->prepare("
 $stmt->execute([$kid_id, $maxEnd, $minStart, $minStart]);
 $rows = $stmt->fetchAll();
 
-$today=0; $yesterday=0; $month=0;
+$today=0; $yesterday=0; $week=0; $month=0;
 $today_by_activity = ['study'=>0, 'play'=>0, 'break'=>0];
+$week_by_activity = ['study'=>0, 'play'=>0, 'break'=>0];
+$month_by_activity = ['study'=>0, 'play'=>0, 'break'=>0];
 $now = time();
 
 foreach ($rows as $r) {
@@ -44,15 +46,23 @@ foreach ($rows as $r) {
 
   $today_sec = overlap_seconds($s, $e, strtotime($ranges['today']['startUtc']),     strtotime($ranges['today']['endUtc']));
   $yesterday_sec = overlap_seconds($s, $e, strtotime($ranges['yesterday']['startUtc']), strtotime($ranges['yesterday']['endUtc']));
+  $week_sec = overlap_seconds($s, $e, strtotime($ranges['thisWeek']['startUtc']), strtotime($ranges['thisWeek']['endUtc']));
   $month_sec = overlap_seconds($s, $e, strtotime($ranges['thisMonth']['startUtc']), strtotime($ranges['thisMonth']['endUtc']));
   
   $today += $today_sec;
   $yesterday += $yesterday_sec;
+  $week += $week_sec;
   $month += $month_sec;
   
-  // 今日の活動別累計を計算
+  // 活動別累計を計算
   if (isset($today_by_activity[$r['label']])) {
     $today_by_activity[$r['label']] += $today_sec;
+  }
+  if (isset($week_by_activity[$r['label']])) {
+    $week_by_activity[$r['label']] += $week_sec;
+  }
+  if (isset($month_by_activity[$r['label']])) {
+    $month_by_activity[$r['label']] += $month_sec;
   }
 }
 
@@ -69,11 +79,22 @@ json_ok([
   'totals'=>[
     'today_sec'=>$today,
     'yesterday_sec'=>$yesterday,
+    'this_week_sec'=>$week,
     'this_month_sec'=>$month
   ],
   'today_by_activity'=>[
     'study_sec'=>$today_by_activity['study'],
     'play_sec'=>$today_by_activity['play'],
     'break_sec'=>$today_by_activity['break']
+  ],
+  'week_by_activity'=>[
+    'study_sec'=>$week_by_activity['study'],
+    'play_sec'=>$week_by_activity['play'],
+    'break_sec'=>$week_by_activity['break']
+  ],
+  'month_by_activity'=>[
+    'study_sec'=>$month_by_activity['study'],
+    'play_sec'=>$month_by_activity['play'],
+    'break_sec'=>$month_by_activity['break']
   ]
 ]);

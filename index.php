@@ -36,6 +36,8 @@
     .study-bg { background:#3b82f6; }
     .play-bg { background:#22c55e; }
     .break-bg { background:#f59e0b; }
+    .weekly-monthly { margin-top:12px; padding:12px 16px; border:1px solid #d1d5db; border-radius:10px; background:#fafafa; }
+    .period-total { font-size:0.9rem; padding:4px 0; color:#374151; }
     .note { margin-top:12px; font-size:.9rem; opacity:.8; }
   </style>
 </head>
@@ -68,6 +70,11 @@
       <div id="study-total" class="activity-total study-bg">勉強：— 分</div>
       <div id="play-total" class="activity-total play-bg">遊び：— 分</div>
       <div id="break-total" class="activity-total break-bg">休憩：— 分</div>
+    </section>
+
+    <section class="weekly-monthly">
+      <div id="week-total" class="period-total">【今週】勉強：— 分 ／ 遊び：— 分 ／ 休憩：— 分</div>
+      <div id="month-total" class="period-total">【今月】勉強：— 分 ／ 遊び：— 分 ／ 休憩：— 分</div>
     </section>
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
@@ -150,6 +157,12 @@
         `遊び：${Math.ceil((j.today_by_activity.play_sec||0)/60)} 分`;
       document.getElementById("break-total").textContent =
         `休憩：${Math.ceil((j.today_by_activity.break_sec||0)/60)} 分`;
+      
+      // 今週・今月の活動別累計時間を表示
+      document.getElementById("week-total").textContent =
+        `【今週】勉強：${Math.ceil((j.week_by_activity.study_sec||0)/60)} 分 ／ 遊び：${Math.ceil((j.week_by_activity.play_sec||0)/60)} 分 ／ 休憩：${Math.ceil((j.week_by_activity.break_sec||0)/60)} 分`;
+      document.getElementById("month-total").textContent =
+        `【今月】勉強：${Math.ceil((j.month_by_activity.study_sec||0)/60)} 分 ／ 遊び：${Math.ceil((j.month_by_activity.play_sec||0)/60)} 分 ／ 休憩：${Math.ceil((j.month_by_activity.break_sec||0)/60)} 分`;
       
       updateButtons(j.now.label || null);
     }
