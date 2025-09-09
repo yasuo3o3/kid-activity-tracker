@@ -1,26 +1,13 @@
 <?php
-// alexa-endpoint.php
-// -----------------------------------------------------------
-// Alexa 署名検証 + Intent 振り分け + 応答生成（PHP 8想定）
-// AWS不要 / XserverのHTTPSで利用可
-// -----------------------------------------------------------
-
 declare(strict_types=1);
 
-// ====== 開発用ログ（本番は無効で可）=========================
+// ====== 開発用ログ =======================================
 const DEBUG_LOG = __DIR__ . '/alexa_debug.log';
 function log_debug(string $m): void {
-  file_put_contents(DEBUG_LOG, '['.date('c')."] $m\n", FILE_APPEND);
+  file_put_contents(DEBUG_LOG, '['.date('c')."] $m\n", FILE_APPEND | LOCK_EX);
 }
 
-// ====== 署名検証 仕様 =======================================
-// https://developer.amazon.com/en-US/docs/alexa/alexa-skills-kit-sdk-for-nodejs/manage-certificates.html
-// ヘッダ: SignatureCertChainUrl, Signature
-// - https / s3.amazonaws.com / port 443 / path startswith /echo.api/
-// - 証明書の SAN に echo-api.amazon.com
-// - 署名は RSA-SHA1
-// - リクエストtimestampは ±150秒以内
-
+// ====== エラー応答 =====================================
 function bad(int $code, string $msg): void {
   log_debug("BAD[$code] $msg");
   http_response_code($code);
@@ -29,89 +16,87 @@ function bad(int $code, string $msg): void {
   exit;
 }
 
-$raw = file_get_contents('php://input') ?: '';
-if ($raw === '') bad(400, 'empty body');
-
-$hdr = array_change_key_case(getallheaders(), CASE_LOWER);
-$certUrl = $hdr['signaturecertchainurl'] ?? '';
-$signatureB64 = $hdr['signature'] ?? '';
-if (!$certUrl || !$signatureB64) bad(400, 'missing signature headers');
-
-// ---- cert URL validation
-$u = parse_url($certUrl);
-if (!$u) bad(400, 'invalid cert url');
-if (($u['scheme'] ?? '') !== 'https') bad(400, 'cert url scheme');
-if (($u['host'] ?? '') !== 's3.amazonaws.com') bad(400, 'cert url host');
-if (($u['port'] ?? 443) != 443) bad(400, 'cert url port');
-if (!str_starts_with($u['path'] ?? '', '/echo.api/')) bad(400, 'cert url path');
-
-// ---- fetch & verify cert (シンプルキャッシュ)
-$cacheFile = sys_get_temp_dir() . '/alexa_cert_' . md5($certUrl) . '.pem';
-$certPem = '';
-if (is_file($cacheFile) && filemtime($cacheFile) > time() - 3600) {
-  $certPem = file_get_contents($cacheFile);
-} else {
-  $ctx = stream_context_create([
-    'http' => ['timeout' => 5],
-    'ssl'  => ['capture_peer_cert' => false]
-  ]);
-  $certPem = @file_get_contents($certUrl, false, $ctx);
-  if (!$certPem) bad(400, 'fetch cert failed');
-  file_put_contents($cacheFile, $certPem);
+// ====== Alexa署名検証 ===================================
+function verify_alexa_signature(): array {
+  if ($_SERVER['REQUEST_METHOD'] !== 'POST') bad(405, 'method not allowed');
+  if (!str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json')) bad(400, 'invalid content type');
+  
+  $raw = file_get_contents('php://input') ?: '';
+  if ($raw === '') bad(400, 'empty body');
+  
+  $hdr = array_change_key_case(getallheaders(), CASE_LOWER);
+  $certUrl = $hdr['signaturecertchainurl'] ?? '';
+  $signatureB64 = $hdr['signature'] ?? '';
+  if (!$certUrl || !$signatureB64) bad(400, 'missing signature headers');
+  
+  // cert URL validation
+  $u = parse_url($certUrl);
+  if (!$u) bad(400, 'invalid cert url');
+  if (($u['scheme'] ?? '') !== 'https') bad(400, 'cert url scheme');
+  if (($u['host'] ?? '') !== 's3.amazonaws.com') bad(400, 'cert url host');
+  if (($u['port'] ?? 443) != 443) bad(400, 'cert url port');
+  if (!str_starts_with($u['path'] ?? '', '/echo.api/')) bad(400, 'cert url path');
+  
+  // fetch & verify cert
+  $cacheFile = sys_get_temp_dir() . '/alexa_cert_' . md5($certUrl) . '.pem';
+  $certPem = '';
+  if (is_file($cacheFile) && filemtime($cacheFile) > time() - 3600) {
+    $certPem = file_get_contents($cacheFile);
+  } else {
+    $ctx = stream_context_create([
+      'http' => ['timeout' => 5],
+      'ssl'  => ['verify_peer' => true, 'verify_peer_name' => true]
+    ]);
+    $certPem = @file_get_contents($certUrl, false, $ctx);
+    if (!$certPem) bad(400, 'fetch cert failed');
+    file_put_contents($cacheFile, $certPem, LOCK_EX);
+  }
+  
+  // parse & validate cert
+  $cert = @openssl_x509_read($certPem);
+  if (!$cert) bad(400, 'bad cert');
+  $certInfo = openssl_x509_parse($cert);
+  $validFrom = $certInfo['validFrom_time_t'] ?? 0;
+  $validTo   = $certInfo['validTo_time_t'] ?? 0;
+  $now = time();
+  if (!($validFrom <= $now && $now <= $validTo)) bad(400, 'cert expired');
+  
+  $altNames = $certInfo['extensions']['subjectAltName'] ?? '';
+  if (stripos($altNames, 'echo-api.amazon.com') === false) {
+    bad(400, 'cert san mismatch');
+  }
+  
+  // verify signature
+  $pubKey = openssl_pkey_get_public($certPem);
+  if (!$pubKey) bad(400, 'pubkey error');
+  $sig = base64_decode($signatureB64, true);
+  if ($sig === false) bad(400, 'b64 error');
+  
+  $ok = openssl_verify($raw, $sig, $pubKey, OPENSSL_ALGO_SHA1);
+  if ($ok !== 1) bad(400, 'signature verify failed');
+  
+  // parse JSON
+  $env = json_decode($raw, true);
+  if (!is_array($env)) bad(400, 'json parse failed');
+  
+  // timestamp check (±150 sec)
+  $tsStr = $env['request']['timestamp'] ?? null;
+  if (!$tsStr) bad(400, 'no timestamp');
+  $reqTs = strtotime($tsStr);
+  if ($reqTs === false || abs(time() - $reqTs) > 150) bad(400, 'stale request');
+  
+  // application ID check (環境変数で設定)
+  $expectedAppId = $_ENV['ALEXA_APPLICATION_ID'] ?? getenv('ALEXA_APPLICATION_ID');
+  if ($expectedAppId) {
+    $actualAppId = $env['context']['System']['application']['applicationId'] ?? '';
+    if ($actualAppId !== $expectedAppId) bad(403, 'application id mismatch');
+  }
+  
+  return $env;
 }
 
-// ---- parse & validate cert
-$cert = @openssl_x509_read($certPem);
-if (!$cert) bad(400, 'bad cert');
-$certInfo = openssl_x509_parse($cert);
-$validFrom = $certInfo['validFrom_time_t'] ?? 0;
-$validTo   = $certInfo['validTo_time_t'] ?? 0;
-$now = time();
-if (!($validFrom <= $now && $now <= $validTo)) bad(400, 'cert expired');
-
-$altNames = '';
-if (!empty($certInfo['extensions']['subjectAltName'])) {
-  $altNames = $certInfo['extensions']['subjectAltName'];
-}
-if (stripos($altNames, 'echo-api.amazon.com') === false) {
-  bad(400, 'cert san mismatch');
-}
-
-// ---- verify signature (RSA-SHA1)
-$pubKey = openssl_pkey_get_public($certPem);
-if (!$pubKey) bad(400, 'pubkey error');
-$sig = base64_decode($signatureB64, true);
-if ($sig === false) bad(400, 'b64 error');
-
-$ok = openssl_verify($raw, $sig, $pubKey, OPENSSL_ALGO_SHA1);
-if ($ok !== 1) bad(400, 'signature verify failed');
-
-// ---- parse JSON
-$env = json_decode($raw, true);
-if (!is_array($env)) bad(400, 'json parse failed');
-
-// ---- timestamp check (±150 sec)
-$tsStr = $env['request']['timestamp'] ?? null;
-if (!$tsStr) bad(400, 'no timestamp');
-$reqTs = strtotime($tsStr);
-if ($reqTs === false || abs(time() - $reqTs) > 150) bad(400, 'stale request');
-
-// ====== ここからスキル本体ロジック ==========================
-
-function buildSpeech(string $text, bool $endSession=true): array {
-  return [
-    'version' => '1.0',
-    'response' => [
-      'shouldEndSession' => $endSession,
-      'outputSpeech' => [
-        'type' => 'PlainText',
-        'text' => $text,
-      ],
-    ],
-  ];
-}
-
-function slotValue(?array $slot): ?string {
+// ====== スロット値抽出 ===================================
+function extract_slot_value(?array $slot): ?string {
   if (!$slot) return null;
   // resolutions から canonical 値を優先
   $res = $slot['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] ?? null;
@@ -121,31 +106,112 @@ function slotValue(?array $slot): ?string {
   return is_string($val) ? $val : null;
 }
 
-// ---- ここで既存のPHP APIにつなぐ設定（あなたの環境に合わせて編集）
-const INTERNAL_SWITCH_URL = 'https://netservice.jp/kid-activity-tracker/api/switch.php';
-// 例: POST { kid: 'こども名', activity: 'study|play|break' } を受ける想定
-// 既に別のパス/パラメータならこの定数と送信部分を調整してください。
-
-function call_switch_api(string $kid, string $activity): bool {
-  $ctx = stream_context_create([
-    'http' => [
-      'method'  => 'POST',
-      'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
-      'content' => http_build_query(['kid' => $kid, 'activity' => $activity]),
-      'timeout' => 5,
-    ]
-  ]);
-  $res = @file_get_contents(INTERNAL_SWITCH_URL, false, $ctx);
-  log_debug("switch_api kid=$kid activity=$activity res=" . substr((string)$res,0,200));
-  // API側の返り値仕様に合わせて判定してください。ここでは200到達でOK扱い。
-  return $res !== false;
+// ====== activity正規化 =================================
+function normalize_activity(string $activity): ?string {
+  $map = [
+    '勉強' => 'study', 'べんきょう' => 'study', '公文' => 'study', 'くもん' => 'study', 'study' => 'study',
+    '遊び' => 'play',  'あそび' => 'play',  'あそぶ' => 'play', 'ゲーム' => 'play', 'play' => 'play',
+    '休憩' => 'break', 'きゅうけい' => 'break', '休む' => 'break', 'ブレイク' => 'break', '終了' => 'break', 'end' => 'break', 'break' => 'break',
+  ];
+  return $map[$activity] ?? null;
 }
 
-// ---- リクエストの種類で分岐
+// ====== config.phpから kid_id逆引き ===================
+function get_kid_id_by_name(string $name): ?string {
+  $config_path = __DIR__ . '/config.php';
+  if (!file_exists($config_path)) return null;
+  
+  $config = require $config_path;
+  $kids = $config['kids'] ?? [];
+  
+  foreach ($kids as $kid_id => $kid_name) {
+    if (strcasecmp($kid_name, $name) === 0) {
+      return $kid_id;
+    }
+  }
+  return null;
+}
+
+// ====== 内部API呼び出し ===============================
+function call_switch_api(string $kid_name, string $activity): bool {
+  $kid_id = get_kid_id_by_name($kid_name);
+  if (!$kid_id) {
+    log_debug("kid not found: $kid_name");
+    return false;
+  }
+  
+  $payload = json_encode([
+    'kid_id' => $kid_id,
+    'label' => $activity
+  ]);
+  
+  $ch = curl_init();
+  curl_setopt_array($ch, [
+    CURLOPT_URL => 'https://netservice.jp/kid-activity-tracker/api/switch.php',
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => $payload,
+    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 5,
+    CURLOPT_SSL_VERIFYPEER => true,
+    CURLOPT_SSL_VERIFYHOST => 2,
+    CURLOPT_FOLLOWLOCATION => false,
+  ]);
+  
+  $res = curl_exec($ch);
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  $error = curl_error($ch);
+  curl_close($ch);
+  
+  log_debug("switch_api kid_name=$kid_name kid_id=$kid_id activity=$activity http=$httpCode res=" . substr((string)$res,0,200));
+  
+  if ($res === false || $error) {
+    log_debug("curl error: $error");
+    return false;
+  }
+  
+  if ($httpCode !== 200) return false;
+  
+  $json = json_decode($res, true);
+  return is_array($json) && ($json['ok'] ?? false) === true;
+}
+
+// ====== Alexaレスポンス生成 ============================
+function build_alexa_response(string $text, bool $endSession = true, ?string $repromptText = null): array {
+  $response = [
+    'version' => '1.0',
+    'response' => [
+      'shouldEndSession' => $endSession,
+      'outputSpeech' => [
+        'type' => 'PlainText',
+        'text' => $text,
+      ],
+    ],
+  ];
+  
+  if ($repromptText !== null) {
+    $response['response']['reprompt'] = [
+      'outputSpeech' => [
+        'type' => 'PlainText',
+        'text' => $repromptText
+      ]
+    ];
+  }
+  
+  return $response;
+}
+
+// ====== メイン処理 ====================================
+$env = verify_alexa_signature();
 $type = $env['request']['type'] ?? '';
 
 if ($type === 'LaunchRequest') {
-  echo json_encode(buildSpeech('だれの、なにを開始しますか？'), JSON_UNESCAPED_UNICODE);
+  $response = build_alexa_response(
+    'だれの、なにを開始しますか？',
+    false,
+    'お子さんの名前と、勉強、遊び、休憩のどれかを教えてください。'
+  );
+  echo json_encode($response, JSON_UNESCAPED_UNICODE);
   exit;
 }
 
@@ -154,44 +220,45 @@ if ($type === 'IntentRequest') {
   $slots = $env['request']['intent']['slots'] ?? [];
 
   if ($intentName === 'StartActivityIntent') {
-    $kid = slotValue($slots['kid'] ?? null) ?? '';
-    $activity = slotValue($slots['activity'] ?? null) ?? '';
+    $kid = extract_slot_value($slots['kid'] ?? null) ?? '';
+    $activity_raw = extract_slot_value($slots['activity'] ?? null) ?? '';
+    $activity = normalize_activity($activity_raw);
 
-    // activity 同義語の軽い正規化（必要に応じて調整）
-    // ACTIVITY スロットの canonical 値名を study/play/break にしておくのが本筋
-    $map = [
-      '勉強' => 'study', 'べんきょう' => 'study', '公文' => 'study', 'くもん' => 'study', 'study' => 'study',
-      '遊び' => 'play',  'あそび' => 'play',  'あそぶ' => 'play', 'ゲーム' => 'play', 'play' => 'play',
-      '休憩' => 'break', 'きゅうけい' => 'break', '休む' => 'break', 'ブレイク' => 'break', '終了' => 'break', 'end' => 'break', 'break' => 'break',
-    ];
-    if (isset($map[$activity])) $activity = $map[$activity];
-
-    if ($kid === '' || !in_array($activity, ['study','play','break'], true)) {
-      echo json_encode(buildSpeech('すみません。だれの、なにを、もう一度お願いします。'), JSON_UNESCAPED_UNICODE);
+    if ($kid === '' || $activity === null) {
+      $response = build_alexa_response(
+        'すみません。だれの、なにを、もう一度お願いします。',
+        false,
+        'お子さんの名前と、勉強、遊び、休憩のどれかを教えてください。'
+      );
+      echo json_encode($response, JSON_UNESCAPED_UNICODE);
       exit;
     }
 
-    // ここで内部APIを叩く（失敗時はメッセージ出し分け）
     $ok = call_switch_api($kid, $activity);
     if ($ok) {
       $ja = ($activity === 'study') ? '勉強' : (($activity === 'play') ? '遊び' : '休憩');
-      echo json_encode(buildSpeech("{$kid}の{$ja}を開始しました。"), JSON_UNESCAPED_UNICODE);
+      $response = build_alexa_response("{$kid}の{$ja}を開始しました。");
+      echo json_encode($response, JSON_UNESCAPED_UNICODE);
       exit;
     } else {
-      echo json_encode(buildSpeech('内部エラーが発生しました。しばらくしてからもう一度お試しください。'), JSON_UNESCAPED_UNICODE);
+      $response = build_alexa_response('内部エラーが発生しました。しばらくしてからもう一度お試しください。');
+      echo json_encode($response, JSON_UNESCAPED_UNICODE);
       exit;
     }
   }
 
   // 未対応Intent
-  echo json_encode(buildSpeech('すみません。その操作には対応していません。'), JSON_UNESCAPED_UNICODE);
+  $response = build_alexa_response('すみません。その操作には対応していません。');
+  echo json_encode($response, JSON_UNESCAPED_UNICODE);
   exit;
 }
 
 if ($type === 'SessionEndedRequest') {
-  echo json_encode(buildSpeech(''), JSON_UNESCAPED_UNICODE);
+  $response = build_alexa_response('');
+  echo json_encode($response, JSON_UNESCAPED_UNICODE);
   exit;
 }
 
 // その他
-echo json_encode(buildSpeech('不明なリクエストです。'), JSON_UNESCAPED_UNICODE);
+$response = build_alexa_response('不明なリクエストです。');
+echo json_encode($response, JSON_UNESCAPED_UNICODE);
