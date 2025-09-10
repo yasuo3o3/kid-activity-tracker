@@ -44,14 +44,20 @@
     element.appendChild(canvas);
     
     try {
-      // QRコード生成（誤り訂正レベルを最大容量のLに設定）
-      const qr = new QRCode(url, {
-        size: 200,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.L  // コンストラクタで直接指定
-      });
+      // QRコード生成（段階的に設定）
+      const qr = new QRCode();
       
+      // 設定を明示的に指定
+      qr.text = url;
+      qr.size = 200;
+      qr.colorDark = '#000000';
+      qr.colorLight = '#ffffff';
+      qr.correctLevel = QRCode.CorrectLevel.L;  // 最大容量の誤り訂正レベル
+      qr.typeNumber = 6;  // より大きな容量のQRコードタイプ
+      
+      // データを追加してQRコード生成
+      qr.addData(url);
+      qr.make();
       qr.toCanvas(canvas);
     } catch (error) {
       console.error('QR generation error:', error);
