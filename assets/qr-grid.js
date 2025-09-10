@@ -44,25 +44,37 @@
     element.appendChild(canvas);
     
     try {
-      // QRコード生成（複数のtypeNumberで試行）
+      // QRコード生成（複数の設定で試行）
       let qr = null;
-      const typeNumbers = [10, 8, 6, 4]; // 大きな容量から順に試行
       
-      for (const typeNum of typeNumbers) {
+      // typeNumberと誤り訂正レベルの組み合わせを試行
+      const configs = [
+        { type: 10, level: QRCode.CorrectLevel.M },
+        { type: 8, level: QRCode.CorrectLevel.M },
+        { type: 6, level: QRCode.CorrectLevel.M },
+        { type: 4, level: QRCode.CorrectLevel.M },
+        { type: 10, level: QRCode.CorrectLevel.L },
+        { type: 8, level: QRCode.CorrectLevel.L },
+        { type: 6, level: QRCode.CorrectLevel.L },
+        { type: 4, level: QRCode.CorrectLevel.L }
+      ];
+      
+      for (const config of configs) {
         try {
           qr = new QRCode();
           qr.text = url;
           qr.size = 200;
           qr.colorDark = '#000000';
           qr.colorLight = '#ffffff';
-          qr.correctLevel = QRCode.CorrectLevel.L;
-          qr.typeNumber = typeNum;
+          qr.correctLevel = config.level;
+          qr.typeNumber = config.type;
           
           qr.addData(url);
           qr.make();
+          console.log(`QR generated successfully with type:${config.type}, level:${config.level}`);
           break; // 成功したらループ終了
         } catch (e) {
-          console.warn(`QR typeNumber ${typeNum} failed:`, e.message);
+          console.warn(`QR type:${config.type}, level:${config.level} failed:`, e.message);
           qr = null;
         }
       }
@@ -70,7 +82,7 @@
       if (qr) {
         qr.toCanvas(canvas);
       } else {
-        throw new Error('All QR typeNumbers failed');
+        throw new Error('All QR configurations failed');
       }
     } catch (error) {
       console.error('QR generation error:', error);
