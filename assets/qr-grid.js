@@ -44,21 +44,34 @@
     element.appendChild(canvas);
     
     try {
-      // QRコード生成（段階的に設定）
-      const qr = new QRCode();
+      // QRコード生成（複数のtypeNumberで試行）
+      let qr = null;
+      const typeNumbers = [10, 8, 6, 4]; // 大きな容量から順に試行
       
-      // 設定を明示的に指定
-      qr.text = url;
-      qr.size = 200;
-      qr.colorDark = '#000000';
-      qr.colorLight = '#ffffff';
-      qr.correctLevel = QRCode.CorrectLevel.L;  // 最大容量の誤り訂正レベル
-      qr.typeNumber = 6;  // より大きな容量のQRコードタイプ
+      for (const typeNum of typeNumbers) {
+        try {
+          qr = new QRCode();
+          qr.text = url;
+          qr.size = 200;
+          qr.colorDark = '#000000';
+          qr.colorLight = '#ffffff';
+          qr.correctLevel = QRCode.CorrectLevel.L;
+          qr.typeNumber = typeNum;
+          
+          qr.addData(url);
+          qr.make();
+          break; // 成功したらループ終了
+        } catch (e) {
+          console.warn(`QR typeNumber ${typeNum} failed:`, e.message);
+          qr = null;
+        }
+      }
       
-      // データを追加してQRコード生成
-      qr.addData(url);
-      qr.make();
-      qr.toCanvas(canvas);
+      if (qr) {
+        qr.toCanvas(canvas);
+      } else {
+        throw new Error('All QR typeNumbers failed');
+      }
     } catch (error) {
       console.error('QR generation error:', error);
       showQRError(element, url);

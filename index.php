@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#0ea5e9" />
   <link rel="manifest" href="/kid-activity-tracker/pwa/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="/kid-activity-tracker/style.css">
 </head>
