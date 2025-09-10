@@ -58,7 +58,7 @@
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
   </main>
-
+<script src="/kid-activity-tracker/assets/qr-grid.js?v=2"></script>
 <script>
   const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
   const api = (p) => `${BASE}/api/${p}`;
@@ -221,34 +221,17 @@
       document.head.appendChild(cssLink);
     }
     
-    // QRCodeライブラリを先に読み込み
-    if (!document.querySelector('script[src*="qrcode.min.js"]')) {
-      const qrScript = document.createElement("script");
-      qrScript.src = "/kid-activity-tracker/assets/qrcode.min.js";
-      qrScript.onload = () => {
-        window.qrCodeLibLoaded = true;
-        // QRCodeライブラリ読み込み後にqr-grid.jsを読み込み
-        if (!document.querySelector('script[src*="qr-grid.js"]')) {
-          const gridScript = document.createElement("script");
-          gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
-          gridScript.onload = () => {
-            window.qrGridLoaded = true;
-          };
-          document.head.appendChild(gridScript);
-        }
+    // qr-grid.jsを直接読み込み（PHPサーバー側QR生成に変更）
+    if (!document.querySelector('script[src*="qr-grid.js"]')) {
+      const gridScript = document.createElement("script");
+      gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
+      gridScript.onload = () => {
+        window.qrGridLoaded = true;
       };
-      document.head.appendChild(qrScript);
+      document.head.appendChild(gridScript);
     } else {
       // 既に読み込み済みの場合
-      window.qrCodeLibLoaded = true;
-      if (!document.querySelector('script[src*="qr-grid.js"]')) {
-        const gridScript = document.createElement("script");
-        gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
-        gridScript.onload = () => {
-          window.qrGridLoaded = true;
-        };
-        document.head.appendChild(gridScript);
-      }
+      window.qrGridLoaded = true;
     }
     
     loadAllKidsStatus();

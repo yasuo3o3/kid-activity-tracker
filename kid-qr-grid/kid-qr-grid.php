@@ -29,17 +29,9 @@ class KidQRGrid {
 
     public function register_scripts() {
         wp_register_script(
-            'qr-js',
-            'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
-            array(),
-            '1.5.3',
-            true
-        );
-        
-        wp_register_script(
             'kid-qr-grid',
             plugin_dir_url(__FILE__) . 'assets/qr-grid.js',
-            array('qr-js'),
+            array(),
             '1.0.0',
             true
         );
@@ -50,28 +42,12 @@ class KidQRGrid {
             array(),
             '1.0.0'
         );
-
-        wp_register_script(
-            'qr-local',
-            plugin_dir_url(__FILE__) . 'assets/qr.min.js',
-            array(),
-            '1.0.0',
-            true
-        );
     }
 
     public function maybe_enqueue_scripts() {
         if ($this->shortcode_used) {
             wp_enqueue_style('kid-qr-grid');
             wp_enqueue_script('kid-qr-grid');
-            
-            wp_add_inline_script('kid-qr-grid', '
-                if (typeof QRCode === "undefined") {
-                    var fallback = document.createElement("script");
-                    fallback.src = "' . plugin_dir_url(__FILE__) . 'assets/qr.min.js";
-                    document.head.appendChild(fallback);
-                }
-            ');
         }
     }
 
@@ -110,8 +86,8 @@ class KidQRGrid {
             
             $output .= '<div class="kid-qr-card">';
             $output .= '<div class="kid-name">' . esc_html($display_name) . '</div>';
-            $output .= '<div class="kid-qr" data-url="' . esc_attr($pwa_url) . '"></div>';
-            $output .= '<button class="kid-copy-btn" data-url="' . esc_attr($pwa_url) . '" type="button" aria-label="' . esc_attr($display_name) . 'のリンクをコピー">リンクをコピー</button>';
+            $output .= '<div class="qr-canvas" data-url="' . esc_attr($pwa_url) . '" data-size="180"></div>';
+            $output .= '<button class="qr-copy" data-copy="' . esc_attr($pwa_url) . '" type="button" aria-label="' . esc_attr($display_name) . 'のリンクをコピー">リンクをコピー</button>';
             $output .= '</div>';
         }
         
