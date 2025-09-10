@@ -23,13 +23,25 @@ class SimpleQRCode {
     
     private function calculateSize() {
         $length = strlen($this->data);
+        
+        // ECC依存のデータ容量調整
+        $capacity_factor = 1.0;
+        switch ($this->errorCorrectionLevel) {
+            case self::ERROR_CORRECTION_L: $capacity_factor = 1.0; break;
+            case self::ERROR_CORRECTION_M: $capacity_factor = 0.8; break;
+            case self::ERROR_CORRECTION_Q: $capacity_factor = 0.65; break;
+            case self::ERROR_CORRECTION_H: $capacity_factor = 0.5; break;
+        }
+        
+        $effective_length = $length / $capacity_factor;
+        
         // Simplified size calculation for alphanumeric mode
-        if ($length <= 25) return 21;
-        if ($length <= 47) return 25;
-        if ($length <= 77) return 29;
-        if ($length <= 114) return 33;
-        if ($length <= 154) return 37;
-        if ($length <= 195) return 41;
+        if ($effective_length <= 25) return 21;
+        if ($effective_length <= 47) return 25;
+        if ($effective_length <= 77) return 29;
+        if ($effective_length <= 114) return 33;
+        if ($effective_length <= 154) return 37;
+        if ($effective_length <= 195) return 41;
         return 45; // Maximum for this simple implementation
     }
     
@@ -55,12 +67,19 @@ class SimpleQRCode {
             $matrix[$i][6] = ($i % 2 == 0) ? 1 : 0;
         }
         
-        // Fill data area with pattern based on data
-        $dataHash = crc32($this->data);
+        // Fill data area with pattern based on data and ECC level
+        $dataHash = crc32($this->data . $this->errorCorrectionLevel);
+        
+        // ECCレベルによる誤り訂正パターンの調整
+        $ecc_pattern = $this->errorCorrectionLevel;
+        
         for ($i = 1; $i < $size - 1; $i++) {
             for ($j = 1; $j < $size - 1; $j++) {
                 if ($matrix[$i][$j] === 0) {
-                    $matrix[$i][$j] = (($dataHash >> (($i + $j) % 32)) & 1);
+                    // ECC level考慮のパターン生成
+                    $hash_shift = (($i + $j + $ecc_pattern) % 32);
+                    $matrix[$i][$j] = (($dataHash >> $hash_shift) & 1) ^ 
+                                    (($i * $j + $ecc_pattern) % 2);
                 }
             }
         }

@@ -1,0 +1,122 @@
+/**
+ * QRコード画像用CSSガード
+ * ピクセル補間によるボケ・モアレを防ぐ
+ */
+
+/* QRコード専用クラス */
+.qr-img {
+    display: block;
+    
+    /* ピクセル補間を最近傍に固定 */
+    image-rendering: pixelated;        /* Modern browsers */
+    image-rendering: crisp-edges;      /* Webkit fallback */
+    image-rendering: -moz-crisp-edges; /* Firefox fallback */
+    -ms-interpolation-mode: nearest-neighbor; /* IE fallback */
+    
+    /* レスポンシブ対応 */
+    max-width: 100%;
+    height: auto;
+    
+    /* ボックス調整 */
+    margin: 0;
+    padding: 0;
+    border: none;
+    
+    /* アクセシビリティ */
+    outline: none;
+}
+
+/* QRコード画像コンテナ */
+.qr-container {
+    display: inline-block;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    
+    /* コンテナでのサイズ制限 */
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* QRカード（Kid Activity Tracker互換） */
+.qr-canvas,
+.kid-qr {
+    display: inline-block;
+    text-align: center;
+    background: transparent;
+    border: none;
+    margin: 4px;
+    padding: 0;
+}
+
+/* QRコード画像が自動挿入された場合 */
+.qr-canvas img,
+.kid-qr img {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: none;
+}
+
+/* デバッグ用（開発時のみ使用） */
+.qr-debug {
+    border: 1px dashed #ccc;
+    position: relative;
+}
+
+.qr-debug::after {
+    content: attr(data-natural-size) ' / ' attr(data-display-size);
+    position: absolute;
+    top: -20px;
+    left: 0;
+    font-size: 10px;
+    color: #666;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 4px;
+    white-space: nowrap;
+}
+
+/* レスポンシブ設計 */
+@media (max-width: 480px) {
+    .qr-img,
+    .qr-canvas img,
+    .kid-qr img {
+        max-width: 90vw;
+    }
+}
+
+/* 印刷対応 */
+@media print {
+    .qr-img,
+    .qr-canvas img,
+    .kid-qr img {
+        image-rendering: crisp-edges;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        page-break-inside: avoid;
+    }
+}
+
+/* 高DPIディスプレイ対応 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .qr-img,
+    .qr-canvas img,
+    .kid-qr img {
+        /* 高DPIでも最近傍補間を維持 */
+        image-rendering: pixelated;
+    }
+}
+
+/* ダークモード対応（Optional） */
+@media (prefers-color-scheme: dark) {
+    .qr-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 8px;
+    }
+}
