@@ -1,0 +1,219 @@
+/* QRグリッド全体 */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+  padding: 0;
+}
+
+/* モバイル対応 */
+@media (max-width: 600px) {
+  .qr-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+}
+
+/* QRカード */
+.qr-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.qr-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 子どもの名前 */
+.qr-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 16px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  word-wrap: break-word;
+  flex-shrink: 0;
+}
+
+/* QRコード表示エリア */
+.qr-canvas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  margin: 16px 0;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  flex-grow: 1;
+}
+
+.qr-canvas canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+/* QRコード生成エラー */
+.qr-error {
+  color: #ff6b6b;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 20px;
+  text-align: center;
+}
+
+.qr-error small {
+  font-size: 12px;
+  opacity: 0.8;
+  display: block;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+/* コピーボタン */
+.qr-copy {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333333;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.qr-copy:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.qr-copy:active {
+  transform: translateY(0);
+}
+
+.qr-copy:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.qr-copy:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+/* コピー結果のフィードバック */
+.qr-copy-success {
+  background: #4caf50 !important;
+  color: #ffffff !important;
+  border-color: #4caf50 !important;
+}
+
+.qr-copy-error {
+  background: #f44336 !important;
+  color: #ffffff !important;
+  border-color: #f44336 !important;
+}
+
+/* 通知メッセージ */
+.qr-notice {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #ffffff;
+  font-size: 16px;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ダークテーマ対応 */
+@media (prefers-color-scheme: dark) {
+  .qr-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .qr-card:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  
+  .qr-copy {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .qr-copy:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* 小さな画面での最適化 */
+@media (max-width: 480px) {
+  .qr-card {
+    padding: 16px;
+    min-height: 260px;
+  }
+  
+  .qr-name {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .qr-canvas {
+    min-height: 180px;
+    margin: 12px 0;
+  }
+  
+  .qr-copy {
+    padding: 10px 16px;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  
+  .qr-notice {
+    padding: 30px 16px;
+    font-size: 14px;
+  }
+}
+
+/* 非常に小さな画面 */
+@media (max-width: 320px) {
+  .qr-grid {
+    gap: 8px;
+    margin: 12px 0;
+  }
+  
+  .qr-card {
+    padding: 12px;
+    min-height: 240px;
+  }
+  
+  .qr-canvas {
+    min-height: 160px;
+  }
+}

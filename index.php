@@ -205,6 +205,36 @@
     document.getElementById("title").textContent = "みんなの活動状況";
     document.getElementById("note").textContent = "※ 全員の活動を一覧表示しています。";
     
+    // QRグリッド用のセクションを動的に追加
+    const noteElement = document.getElementById("note");
+    const qrSection = document.createElement("section");
+    qrSection.id = "kid-qr-grid";
+    qrSection.className = "qr-grid";
+    noteElement.parentNode.insertBefore(qrSection, noteElement.nextSibling);
+    
+    // CSS・JSを動的に追加
+    if (!document.querySelector('link[href*="qr-grid.css"]')) {
+      const cssLink = document.createElement("link");
+      cssLink.rel = "stylesheet";
+      cssLink.href = "/kid-activity-tracker/assets/qr-grid.css";
+      document.head.appendChild(cssLink);
+    }
+    
+    if (!document.querySelector('script[src*="qrcode.min.js"]')) {
+      const qrScript = document.createElement("script");
+      qrScript.src = "/kid-activity-tracker/assets/qrcode.min.js";
+      document.head.appendChild(qrScript);
+    }
+    
+    if (!document.querySelector('script[src*="qr-grid.js"]')) {
+      const gridScript = document.createElement("script");
+      gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
+      gridScript.onload = () => {
+        window.qrGridLoaded = true;
+      };
+      document.head.appendChild(gridScript);
+    }
+    
     loadAllKidsStatus();
   }
 
@@ -214,6 +244,7 @@
       const j = await r.json();
       if (j.ok) {
         displayAllKidsStatus(j.kids);
+        displayKidsQRGrid(j.kids);
       }
     } catch (e) {
       console.error("全員の状況取得に失敗:", e);
@@ -342,6 +373,56 @@
     // 現在が「本日全件表示」なら「最新20件」に、逆なら「本日全件表示」に切り替え
     loadActivityLogs(kid_id, !isShowingToday);
   }
+
+  function displayKidsQRGrid(kids) {
+    const qrSection = document.getElementById("kid-qr-grid");
+    if (!qrSection || kids.length === 0) {
+      if (qrSection) {
+        qrSection.innerHTML = '<div class="qr-notice">子どもが登録されていません</div>';
+      }
+      return;
+    }
+
+    let html = '';
+    kids.forEach(kid => {
+      const name = kid.kid_name || '';
+      const id = kid.kid_id || '';
+      const url = `https://netservice.jp/kid-activity-tracker/?kid_id=${encodeURIComponent(id)}`;
+      
+      html += `
+        <div class="qr-card">
+          <div class="qr-name">${escapeHtml(name)}</div>
+          <div class="qr-canvas" data-url="${escapeHtml(url)}"></div>
+          <button class="qr-copy" type="button" aria-label="${escapeHtml(name)}のリンクをコピー" data-copy="${escapeHtml(url)}">リンクをコピー</button>
+        </div>
+      `;
+    });
+    
+    qrSection.innerHTML = html;
+    
+    // QRコード生成を実行（スクリプト読み込み後）
+    if (window.qrGridLoaded && window.initQRGrid) {
+      window.initQRGrid();
+    } else {
+      // スクリプトの読み込み待機
+      const checkQRGrid = setInterval(() => {
+        if (window.qrGridLoaded && window.initQRGrid) {
+          window.initQRGrid();
+          clearInterval(checkQRGrid);
+        }
+      }, 100);
+      
+      // タイムアウト処理
+      setTimeout(() => clearInterval(checkQRGrid), 5000);
+    }
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   window.addEventListener("load", initPage);
 </script>
 </body>
