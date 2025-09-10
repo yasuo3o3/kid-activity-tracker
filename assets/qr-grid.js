@@ -48,12 +48,10 @@
       const qr = new QRCode(url, {
         size: 200,
         colorDark: '#000000',
-        colorLight: '#ffffff'
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.L  // コンストラクタで直接指定
       });
       
-      // 誤り訂正レベルを明示的に設定
-      qr.correctLevel = QRCode.CorrectLevel.L;
-      qr.make();
       qr.toCanvas(canvas);
     } catch (error) {
       console.error('QR generation error:', error);
