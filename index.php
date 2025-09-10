@@ -403,12 +403,12 @@
     kids.forEach(kid => {
       const name = kid.kid_name || '';
       const id = kid.kid_id || '';
-      const url = `https://netservice.jp/kid-activity-tracker/?kid_id=${encodeURIComponent(id)}`;
+      const url = `https://netservice.jp/kid-activity-tracker/r.php?k=${encodeURIComponent(id)}`;
       
       html += `
         <div class="qr-card">
           <div class="qr-name">${escapeHtml(name)}</div>
-          <div class="qr-canvas" data-url="${escapeHtml(url)}"></div>
+          <div class="qr-canvas" data-url="${escapeHtml(url)}" data-size="220"></div>
           <button class="qr-copy" type="button" aria-label="${escapeHtml(name)}のリンクをコピー" data-copy="${escapeHtml(url)}">リンクをコピー</button>
         </div>
       `;
