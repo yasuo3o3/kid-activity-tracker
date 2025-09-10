@@ -220,19 +220,34 @@
       document.head.appendChild(cssLink);
     }
     
+    // QRCodeライブラリを先に読み込み
     if (!document.querySelector('script[src*="qrcode.min.js"]')) {
       const qrScript = document.createElement("script");
       qrScript.src = "/kid-activity-tracker/assets/qrcode.min.js";
-      document.head.appendChild(qrScript);
-    }
-    
-    if (!document.querySelector('script[src*="qr-grid.js"]')) {
-      const gridScript = document.createElement("script");
-      gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
-      gridScript.onload = () => {
-        window.qrGridLoaded = true;
+      qrScript.onload = () => {
+        window.qrCodeLibLoaded = true;
+        // QRCodeライブラリ読み込み後にqr-grid.jsを読み込み
+        if (!document.querySelector('script[src*="qr-grid.js"]')) {
+          const gridScript = document.createElement("script");
+          gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
+          gridScript.onload = () => {
+            window.qrGridLoaded = true;
+          };
+          document.head.appendChild(gridScript);
+        }
       };
-      document.head.appendChild(gridScript);
+      document.head.appendChild(qrScript);
+    } else {
+      // 既に読み込み済みの場合
+      window.qrCodeLibLoaded = true;
+      if (!document.querySelector('script[src*="qr-grid.js"]')) {
+        const gridScript = document.createElement("script");
+        gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
+        gridScript.onload = () => {
+          window.qrGridLoaded = true;
+        };
+        document.head.appendChild(gridScript);
+      }
     }
     
     loadAllKidsStatus();
@@ -400,20 +415,20 @@
     
     qrSection.innerHTML = html;
     
-    // QRコード生成を実行（スクリプト読み込み後）
-    if (window.qrGridLoaded && window.initQRGrid) {
+    // QRコード生成を実行（両ライブラリ読み込み後）
+    if (window.qrCodeLibLoaded && window.qrGridLoaded && window.initQRGrid) {
       window.initQRGrid();
     } else {
-      // スクリプトの読み込み待機
+      // 両ライブラリの読み込み待機
       const checkQRGrid = setInterval(() => {
-        if (window.qrGridLoaded && window.initQRGrid) {
+        if (window.qrCodeLibLoaded && window.qrGridLoaded && window.initQRGrid) {
           window.initQRGrid();
           clearInterval(checkQRGrid);
         }
       }, 100);
       
       // タイムアウト処理
-      setTimeout(() => clearInterval(checkQRGrid), 5000);
+      setTimeout(() => clearInterval(checkQRGrid), 10000);
     }
   }
 
