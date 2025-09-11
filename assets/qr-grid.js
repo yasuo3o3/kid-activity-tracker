@@ -6,13 +6,12 @@
       if (!url || el.dataset.qrDone === '1') return;
       el.innerHTML = "";
       
-      // Create image element
+      // Create image element (natural sizeで表示)
       var img = new Image();
-      img.width = img.height = size;
       img.alt = url;
       
-      // Generate QR code URL pointing to PHP endpoint
-      var qrUrl = './assets/qr.php?text=' + encodeURIComponent(url) + '&s=' + size;
+      // Generate QR code URL pointing to PHP endpoint (naturalSize=clientSize対策)
+      var qrUrl = './assets/qr.php?text=' + encodeURIComponent(url) + '&s=264&ecc=H&m=4&exact=1';
       
       // Handle image load success
       img.onload = function() {

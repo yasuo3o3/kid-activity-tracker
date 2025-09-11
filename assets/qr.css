@@ -49,18 +49,33 @@
     padding: 0;
 }
 
-/* QRコード画像が自動挿入された場合 */
+/* QRコード画像が自動挿入された場合 - natural size厳守 */
 .qr-canvas img,
 .kid-qr img {
     display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    image-rendering: -moz-crisp-edges;
-    -ms-interpolation-mode: nearest-neighbor;
-    max-width: 100%;
-    height: auto;
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    image-rendering: -moz-crisp-edges !important;
+    image-rendering: -webkit-crisp-edges !important;
+    -ms-interpolation-mode: nearest-neighbor !important;
+    
+    /* サイズ指定禁止 - natural sizeで表示 */
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    
+    /* 変形禁止 */
+    transform: none !important;
+    scale: 1 !important;
+    zoom: 1 !important;
+    object-fit: none !important;
+    
     margin: 0 auto;
     border: none;
+    padding: 0;
 }
 
 /* デバッグ用（開発時のみ使用） */

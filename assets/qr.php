@@ -33,12 +33,12 @@ function sendError($code, $message) {
     exit;
 }
 
-// パラメータ取得と検証
+// パラメータ取得と検証（naturalSize=clientSize対策）
 $text = isset($_GET['text']) ? $_GET['text'] : '';
-$s = isset($_GET['s']) ? intval($_GET['s']) : 180;
-$ecc = isset($_GET['ecc']) ? strtoupper($_GET['ecc']) : 'Q';
-$m = isset($_GET['m']) ? intval($_GET['m']) : 2;
-$exact = isset($_GET['exact']) ? intval($_GET['exact']) : 0;
+$s = isset($_GET['s']) ? intval($_GET['s']) : 264;
+$ecc = isset($_GET['ecc']) ? strtoupper($_GET['ecc']) : 'H';
+$m = isset($_GET['m']) ? intval($_GET['m']) : 4;
+$exact = isset($_GET['exact']) ? intval($_GET['exact']) : 1;  // 最近傍リサイズ既定
 
 // 入力検証
 if (empty($text)) {
@@ -99,9 +99,9 @@ try {
     }
     
     if ($exact == 1) {
-        // アルゴリズムB: サーバー側最近傍拡大
-        // より大きいpointで生成してから最近傍で縮小
-        $large_point = min(10, $point * 2);
+        // アルゴリズムB: サーバー側最近傍リサイズ（ボケ防止）
+        // 大きなpointで生成してからIMG_NEAREST_NEIGHBOURで縮小
+        $large_point = min(10, max(8, $point * 2));
         $large_size = ($modules + 2 * $m) * $large_point;
         
         // 大きいサイズで生成
@@ -111,17 +111,24 @@ try {
             throw new Exception('Failed to generate large QR code image');
         }
         
-        // 最近傍で目標サイズにリサイズ
-        $final_img = imagecreatetruecolor($s, $s);
-        imagecopyresized($final_img, $large_img, 0, 0, 0, 0, $s, $s, $large_size, $large_size);
+        // 最近傍リサイズでピクセル完璧維持
+        if (function_exists('imagescale')) {
+            // PHP 5.5+ の高品質リサイズ
+            $img = imagescale($large_img, $s, $s, IMG_NEAREST_NEIGHBOUR);
+            imagedestroy($large_img);
+        } else {
+            // fallback: imagecopyresized
+            $img = imagecreatetruecolor($s, $s);
+            $white = imagecolorallocate($img, 255, 255, 255);
+            imagefill($img, 0, 0, $white);
+            imagecopyresized($img, $large_img, 0, 0, 0, 0, $s, $s, $large_size, $large_size);
+            imagedestroy($large_img);
+        }
         
-        // アルファ保持
-        imagesavealpha($final_img, true);
-        $transparent = imagecolorallocatealpha($final_img, 0, 0, 0, 127);
-        imagefill($final_img, 0, 0, $transparent);
+        if (!$img) {
+            throw new Exception('Failed to resize QR code image');
+        }
         
-        imagedestroy($large_img);
-        $img = $final_img;
         $actual_size = $s;
     } else {
         // 通常生成（natural size）

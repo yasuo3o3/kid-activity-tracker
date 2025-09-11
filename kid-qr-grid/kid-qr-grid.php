@@ -86,7 +86,7 @@ class KidQRGrid {
             
             $output .= '<div class="kid-qr-card">';
             $output .= '<div class="kid-name">' . esc_html($display_name) . '</div>';
-            $output .= '<div class="qr-canvas" data-url="' . esc_attr($pwa_url) . '" data-size="180"></div>';
+            $output .= '<div class="qr-canvas" data-url="' . esc_attr($pwa_url) . '" data-size="264"></div>';
             $output .= '<button class="qr-copy" data-copy="' . esc_attr($pwa_url) . '" type="button" aria-label="' . esc_attr($display_name) . 'のリンクをコピー">リンクをコピー</button>';
             $output .= '</div>';
         }
