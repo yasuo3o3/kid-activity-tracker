@@ -12,6 +12,12 @@
 // ヘッダ送出前のバイト出力を防ぐ
 ob_start();
 
+// QRマスクパターン最適化（ストライプ対策）
+if (!defined('QR_FIND_BEST_MASK'))   define('QR_FIND_BEST_MASK', true);
+if (!defined('QR_FIND_FROM_RANDOM')) define('QR_FIND_FROM_RANDOM', false);
+if (!defined('QR_DEFAULT_MASK'))     define('QR_DEFAULT_MASK', 2);
+define('QR_LOG_DIR', __DIR__.'/qrlog'); // ログ確認用
+
 // Include the QR code library
 require_once __DIR__ . '/phpqrcode.php';
 
