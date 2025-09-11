@@ -387,11 +387,11 @@
   window.addEventListener("load", initPage);
 </script>
 
-<div style="display: flex;">
-<p>ゆうた</p>
-<p>けいた</p>
-<img src="assets/yuta.png" alt="Yuta">
-<img src="assets/keita.png" alt="Keita">
-</div>
+
+ゆうた<br>
+<img src="assets/yuta.png" alt="Yuta"><br>
+けいた<br>
+<img src="assets/keita.png" alt="Keita"><br>
+
 </body>
 </html>
