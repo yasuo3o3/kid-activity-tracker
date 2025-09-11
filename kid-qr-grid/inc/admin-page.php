@@ -18,7 +18,7 @@ $pwa_base = get_option('kid_qr_grid_pwa_base', '');
 ?>
 
 <div class="wrap">
-    <h1>Kid QR Grid 設定</h1>
+    <h1>Kid Link Grid 設定</h1>
     
     <form method="post" action="">
         <?php wp_nonce_field('kid_qr_grid_save', 'kid_qr_grid_nonce'); ?>
@@ -76,7 +76,6 @@ $pwa_base = get_option('kid_qr_grid_pwa_base', '');
     <h3>表示内容</h3>
     <ul>
         <li>各子どもの名前</li>
-        <li>専用URLのQRコード</li>
         <li>リンクコピーボタン</li>
     </ul>
     
@@ -94,7 +93,7 @@ $pwa_base = get_option('kid_qr_grid_pwa_base', '');
         <?php endif; ?>
     <?php else: ?>
         <div class="notice notice-warning">
-            <p>QRコードを表示するには、上記の設定をすべて入力して保存してください。</p>
+            <p>リンクグリッドを表示するには、上記の設定をすべて入力して保存してください。</p>
         </div>
     <?php endif; ?>
 </div>

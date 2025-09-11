@@ -29,16 +29,16 @@ class KidQRGrid {
 
     public function register_scripts() {
         wp_register_script(
-            'kid-qr-grid',
-            plugin_dir_url(__FILE__) . 'assets/qr-grid.js',
+            'kid-copy-link',
+            plugin_dir_url(__FILE__) . 'assets/copy-link.js',
             array(),
             '1.0.0',
             true
         );
 
         wp_register_style(
-            'kid-qr-grid',
-            plugin_dir_url(__FILE__) . 'assets/qr-grid.css',
+            'kid-link-grid',
+            plugin_dir_url(__FILE__) . 'assets/link-grid.css',
             array(),
             '1.0.0'
         );
@@ -46,8 +46,8 @@ class KidQRGrid {
 
     public function maybe_enqueue_scripts() {
         if ($this->shortcode_used) {
-            wp_enqueue_style('kid-qr-grid');
-            wp_enqueue_script('kid-qr-grid');
+            wp_enqueue_style('kid-link-grid');
+            wp_enqueue_script('kid-copy-link');
         }
     }
 
@@ -86,7 +86,6 @@ class KidQRGrid {
             
             $output .= '<div class="kid-qr-card">';
             $output .= '<div class="kid-name">' . esc_html($display_name) . '</div>';
-            $output .= '<div class="qr-canvas" data-url="' . esc_attr($pwa_url) . '" data-size="264"></div>';
             $output .= '<button class="qr-copy" data-copy="' . esc_attr($pwa_url) . '" type="button" aria-label="' . esc_attr($display_name) . 'のリンクをコピー">リンクをコピー</button>';
             $output .= '</div>';
         }

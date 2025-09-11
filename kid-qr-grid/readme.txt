@@ -1,6 +1,6 @@
-=== Kid QR Grid ===
+=== Kid Link Grid ===
 Contributors: developer
-Tags: qr-code, children, activity-tracker, shortcode, pwa
+Tags: children, activity-tracker, shortcode, pwa, links
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.4
@@ -8,34 +8,33 @@ Stable tag: 1.0.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
-WordPress plugin to display QR codes for child PWA access links on parent pages.
+WordPress plugin to display links for child PWA access on parent pages.
 
 == Description ==
 
-Kid QR Grid plugin allows you to display QR codes for child activity tracking PWA access links on parent pages. Each QR code, when scanned with a smartphone camera, opens the child's dedicated PWA URL for activity tracking.
+Kid Link Grid plugin allows you to display copy-to-clipboard links for child activity tracking PWA access on parent pages. Each link can be easily copied and shared to access the child's dedicated PWA URL for activity tracking.
 
 **Features:**
 
-* Display QR codes for multiple children in a responsive grid layout
+* Display link buttons for multiple children in a responsive grid layout
 * Generate child-specific URLs with unique kid_id parameters
 * Copy-to-clipboard functionality for sharing links
 * Clean, accessible design that works with light and dark themes
 * Configurable API endpoint and PWA base URL
-* Client-side QR code generation (no external services)
-* Fallback support for older browsers
+* Lightweight JavaScript implementation
 
 **Usage:**
 
-1. Configure API endpoint and PWA base URL in Settings > Kid QR Grid
+1. Configure API endpoint and PWA base URL in Settings > Kid Link Grid
 2. Add `[kid_qr_grid]` shortcode to any page or post
-3. QR codes will be generated automatically for each child
+3. Link buttons will be generated automatically for each child
 
 == Installation ==
 
 1. Upload the plugin files to the `/wp-content/plugins/kid-qr-grid` directory
 2. Activate the plugin through the 'Plugins' screen in WordPress
-3. Go to Settings > Kid QR Grid to configure the plugin
-4. Add the shortcode `[kid_qr_grid]` to any page or post where you want to display QR codes
+3. Go to Settings > Kid Link Grid to configure the plugin
+4. Add the shortcode `[kid_qr_grid]` to any page or post where you want to display link buttons
 
 == Frequently Asked Questions ==
 
@@ -55,7 +54,7 @@ Yes, the plugin supports multiple shortcode instances on the same page without c
 
 = Does the plugin work offline? =
 
-QR code generation works offline once the page is loaded, but fetching child data requires an internet connection.
+Link generation works offline once the page is loaded, but fetching child data requires an internet connection.
 
 = Is the plugin mobile-friendly? =
 
@@ -63,7 +62,7 @@ Yes, the grid layout is fully responsive and adapts to different screen sizes (2
 
 == Screenshots ==
 
-1. QR code grid display with child names and copy buttons
+1. Link grid display with child names and copy buttons
 2. Plugin settings page with API configuration
 3. Mobile-responsive layout
 
@@ -71,11 +70,11 @@ Yes, the grid layout is fully responsive and adapts to different screen sizes (2
 
 = 1.0.0 =
 * Initial release
-* QR code generation for child PWA links
+* Link button generation for child PWA links
 * Responsive grid layout
 * Copy-to-clipboard functionality
 * Admin settings page
-* Client-side QR generation with fallback support
+* Lightweight JavaScript implementation
 
 == Technical Notes ==
 
@@ -86,13 +85,13 @@ Yes, the grid layout is fully responsive and adapts to different screen sizes (2
 
 **Performance:**
 * Scripts and styles only load on pages with the shortcode
-* CDN-first loading with local fallback for QR library
+* Lightweight JavaScript implementation
 * Efficient client-side rendering
 
 **Compatibility:**
 * Works with WordPress 5.0+
 * PHP 7.4+ required
-* Modern browsers with Canvas support
+* Modern browsers with Clipboard API support
 
 == Support ==
 

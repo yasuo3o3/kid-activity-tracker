@@ -58,7 +58,7 @@
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
   </main>
-<script src="/kid-activity-tracker/assets/qr-grid.js?v=2"></script>
+<script src="/kid-activity-tracker/assets/copy-link.js?v=1"></script>
 <script>
   const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
   const api = (p) => `${BASE}/api/${p}`;
@@ -206,33 +206,12 @@
     document.getElementById("title").textContent = "みんなの活動状況";
     document.getElementById("note").textContent = "※ 全員の活動を一覧表示しています。";
     
-    // QRグリッド用のセクションを動的に追加
+    // リンク一覧用のセクションを動的に追加
     const noteElement = document.getElementById("note");
-    const qrSection = document.createElement("section");
-    qrSection.id = "kid-qr-grid";
-    qrSection.className = "qr-grid";
-    noteElement.parentNode.insertBefore(qrSection, noteElement.nextSibling);
-    
-    // CSS・JSを動的に追加
-    if (!document.querySelector('link[href*="qr-grid.css"]')) {
-      const cssLink = document.createElement("link");
-      cssLink.rel = "stylesheet";
-      cssLink.href = "/kid-activity-tracker/assets/qr-grid.css";
-      document.head.appendChild(cssLink);
-    }
-    
-    // qr-grid.jsを直接読み込み（PHPサーバー側QR生成に変更）
-    if (!document.querySelector('script[src*="qr-grid.js"]')) {
-      const gridScript = document.createElement("script");
-      gridScript.src = "/kid-activity-tracker/assets/qr-grid.js";
-      gridScript.onload = () => {
-        window.qrGridLoaded = true;
-      };
-      document.head.appendChild(gridScript);
-    } else {
-      // 既に読み込み済みの場合
-      window.qrGridLoaded = true;
-    }
+    const linkSection = document.createElement("section");
+    linkSection.id = "kid-link-grid";
+    linkSection.className = "link-grid";
+    noteElement.parentNode.insertBefore(linkSection, noteElement.nextSibling);
     
     loadAllKidsStatus();
   }
@@ -243,7 +222,7 @@
       const j = await r.json();
       if (j.ok) {
         displayAllKidsStatus(j.kids);
-        displayKidsQRGrid(j.kids);
+        displayKidsLinkGrid(j.kids);
       }
     } catch (e) {
       console.error("全員の状況取得に失敗:", e);
@@ -373,11 +352,11 @@
     loadActivityLogs(kid_id, !isShowingToday);
   }
 
-  function displayKidsQRGrid(kids) {
-    const qrSection = document.getElementById("kid-qr-grid");
-    if (!qrSection || kids.length === 0) {
-      if (qrSection) {
-        qrSection.innerHTML = '<div class="qr-notice">子どもが登録されていません</div>';
+  function displayKidsLinkGrid(kids) {
+    const linkSection = document.getElementById("kid-link-grid");
+    if (!linkSection || kids.length === 0) {
+      if (linkSection) {
+        linkSection.innerHTML = '<div class="link-notice">子どもが登録されていません</div>';
       }
       return;
     }
@@ -389,31 +368,14 @@
       const url = `https://netservice.jp/kid-activity-tracker/r.php?k=${encodeURIComponent(id)}`;
       
       html += `
-        <div class="qr-card">
-          <div class="qr-name">${escapeHtml(name)}</div>
-          <div class="qr-canvas" data-url="${escapeHtml(url)}" data-size="220"></div>
+        <div class="link-card">
+          <div class="link-name">${escapeHtml(name)}</div>
           <button class="qr-copy" type="button" aria-label="${escapeHtml(name)}のリンクをコピー" data-copy="${escapeHtml(url)}">リンクをコピー</button>
         </div>
       `;
     });
     
-    qrSection.innerHTML = html;
-    
-    // QRコード生成を実行（両ライブラリ読み込み後）
-    if (window.qrCodeLibLoaded && window.qrGridLoaded && window.initQRGrid) {
-      window.initQRGrid();
-    } else {
-      // 両ライブラリの読み込み待機
-      const checkQRGrid = setInterval(() => {
-        if (window.qrCodeLibLoaded && window.qrGridLoaded && window.initQRGrid) {
-          window.initQRGrid();
-          clearInterval(checkQRGrid);
-        }
-      }, 100);
-      
-      // タイムアウト処理
-      setTimeout(() => clearInterval(checkQRGrid), 10000);
-    }
+    linkSection.innerHTML = html;
   }
 
     function escapeHtml(text) {
@@ -424,5 +386,12 @@
 
   window.addEventListener("load", initPage);
 </script>
+
+<div style="display: flex;">
+<p>ゆうた</p>
+<p>けいた</p>
+<img src="assets/yuta.png" alt="Yuta">
+<img src="assets/keita.png" alt="Keita">
+</div>
 </body>
 </html>
