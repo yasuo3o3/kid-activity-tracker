@@ -112,16 +112,21 @@
     const kid_id = getKidId();
     if (!kid_id) return notify.error("URLに ?kid=UUID を指定してください");
     try {
-      const r = await fetch(api("switch.php"), {
+      const apiUrl = api("switch.php");
+      console.log("Switch API URL:", apiUrl);
+      const r = await fetch(apiUrl, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ kid_id, label })
       });
+      console.log("Switch Response status:", r.status);
       const j = await r.json();
+      console.log("Switch Response data:", j);
       if (!r.ok || !j.ok) throw new Error(j.error || "failed");
       await refresh();
       notify.success(`${jp(label)}を開始しました`);
     } catch (e) {
+      console.error("Switch error:", e);
       notify.error("エラー: " + e.message);
     }
   }
@@ -130,12 +135,16 @@
     const kid_id = getKidId();
     if (!kid_id) return notify.error("URLに ?kid=UUID を指定してください");
     try {
-      const r = await fetch(api("stop.php"), {
+      const apiUrl = api("stop.php");
+      console.log("Stop API URL:", apiUrl);
+      const r = await fetch(apiUrl, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ kid_id })
       });
+      console.log("Stop Response status:", r.status);
       const j = await r.json();
+      console.log("Stop Response data:", j);
       if (!r.ok || !j.ok) throw new Error(j.error || "failed");
       await refresh();
       notify.success("終了しました");
@@ -162,8 +171,12 @@
   async function refresh() {
     const kid_id = getKidId();
     if (!kid_id) return;
-    const r = await fetch(api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`), { method:"GET" });
+    const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`);
+    console.log("Stats API URL:", apiUrl);
+    const r = await fetch(apiUrl, { method:"GET" });
+    console.log("Stats Response status:", r.status);
     const j = await r.json();
+    console.log("Stats Response data:", j);
     if (j.ok) {
       document.getElementById("now").textContent =
         j.now.label ? `今：${jp(j.now.label)}（${toJstHHmm(j.now.since)}開始）` : "今：—";
@@ -210,8 +223,12 @@
     if (kid_id) {
       // kid_idから名前を取得してタイトルを設定
       try {
-        const r = await fetch(api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`), { method:"GET" });
+        const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`);
+        console.log("Name fetch API URL:", apiUrl);
+        const r = await fetch(apiUrl, { method:"GET" });
+        console.log("Name fetch Response status:", r.status);
         const j = await r.json();
+        console.log("Name fetch Response data:", j);
         if (j.ok && j.kid_name) {
           document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
           document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;

@@ -102,15 +102,22 @@
 
   async function loadAllKidsStatus() {
     try {
-      const r = await fetch(api("all_stats.php"), { method:"GET" });
+      const apiUrl = api("all_stats.php");
+      console.log("API URL:", apiUrl);
+      const r = await fetch(apiUrl, { method:"GET" });
+      console.log("Response status:", r.status);
+      console.log("Response headers:", Object.fromEntries(r.headers.entries()));
       const j = await r.json();
+      console.log("Response data:", j);
       if (j.ok) {
         displayAllKidsStatus(j.kids);
         displayKidsLinkGrid(j.kids);
+      } else {
+        document.getElementById("all-kids-status").innerHTML = "<p>APIエラー: " + (j.error || "不明なエラー") + "</p>";
       }
     } catch (e) {
       console.error("全員の状況取得に失敗:", e);
-      document.getElementById("all-kids-status").innerHTML = "<p>データの読み込みに失敗しました</p>";
+      document.getElementById("all-kids-status").innerHTML = "<p>データの読み込みに失敗しました: " + e.message + "</p>";
     }
   }
 
