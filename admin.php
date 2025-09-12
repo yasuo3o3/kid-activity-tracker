@@ -7,11 +7,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kid Activity Tracker - 管理画面</title>
   <meta name="theme-color" content="#0ea5e9" />
-  <link rel="manifest" href="/kid-activity-tracker/pwa/manifest.json">
+  <base href="/kid-activity-tracker/">
+  <meta name="app-base" content="/kid-activity-tracker/">
+  <link rel="manifest" href="./pwa/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" href="/kid-activity-tracker/style.css">
+  <link rel="stylesheet" href="./style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
@@ -29,9 +31,10 @@
     <!-- リンク一覧セクション -->
     <section id="kid-link-grid" class="link-grid"></section>
   </main>
-<script src="/kid-activity-tracker/assets/copy-link.js?v=1"></script>
+<script src="./assets/url-helper.js"></script>
+<script src="./assets/copy-link.js?v=1"></script>
 <script>
-  const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
+  // BASEは不要、publicUrl() を使用
   const api = (p) => `${BASE}/api/${p}`;
 
   // SweetAlert2 ラッパー関数
@@ -246,7 +249,7 @@
     kids.forEach(kid => {
       const name = kid.kid_name || '';
       const id = kid.kid_id || '';
-      const url = `https://netservice.jp/kid-activity-tracker/?kid=${encodeURIComponent(id)}`;
+      const url = getKidUrl(id);
       
       html += `
         <div class="link-card">

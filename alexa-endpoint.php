@@ -147,7 +147,7 @@ function call_switch_api(string $kid_name, string $activity): bool {
   
   $ch = curl_init();
   curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://netservice.jp/kid-activity-tracker/api/switch.php',
+    CURLOPT_URL => $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/api/switch.php',
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $payload,
     CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
