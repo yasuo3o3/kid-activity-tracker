@@ -12,6 +12,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="/kid-activity-tracker/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
   <header class="wrap">
@@ -32,6 +33,48 @@
 <script>
   const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
   const api = (p) => `${BASE}/api/${p}`;
+
+  // SweetAlert2 ラッパー関数
+  const notify = {
+    success: (message) => {
+      return Swal.fire({
+        icon: 'success',
+        title: '成功',
+        text: message,
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+    },
+    error: (message) => {
+      return Swal.fire({
+        icon: 'error',
+        title: 'エラー',
+        text: message,
+        confirmButtonText: 'OK'
+      });
+    },
+    info: (message) => {
+      return Swal.fire({
+        icon: 'info',
+        title: '情報',
+        text: message,
+        confirmButtonText: 'OK'
+      });
+    },
+    confirm: (message, options = {}) => {
+      return Swal.fire({
+        icon: 'question',
+        title: '確認',
+        text: message,
+        showCancelButton: true,
+        confirmButtonText: options.confirmText || 'はい',
+        cancelButtonText: options.cancelText || 'いいえ',
+        ...options
+      }).then((result) => result.isConfirmed);
+    }
+  };
 
   function formatTime(seconds){
     const minutes = Math.ceil(seconds / 60);

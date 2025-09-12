@@ -12,6 +12,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="/kid-activity-tracker/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
   <header class="wrap">
@@ -58,13 +59,55 @@
   const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
   const api = (p) => `${BASE}/api/${p}`;
 
+  // SweetAlert2 ラッパー関数
+  const notify = {
+    success: (message) => {
+      return Swal.fire({
+        icon: 'success',
+        title: '成功',
+        text: message,
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+    },
+    error: (message) => {
+      return Swal.fire({
+        icon: 'error',
+        title: 'エラー',
+        text: message,
+        confirmButtonText: 'OK'
+      });
+    },
+    info: (message) => {
+      return Swal.fire({
+        icon: 'info',
+        title: '情報',
+        text: message,
+        confirmButtonText: 'OK'
+      });
+    },
+    confirm: (message, options = {}) => {
+      return Swal.fire({
+        icon: 'question',
+        title: '確認',
+        text: message,
+        showCancelButton: true,
+        confirmButtonText: options.confirmText || 'はい',
+        cancelButtonText: options.cancelText || 'いいえ',
+        ...options
+      }).then((result) => result.isConfirmed);
+    }
+  };
+
   function getKidId() {
     const params = new URLSearchParams(location.search);
     return params.get('kid') || '';
   }
   async function startActivity(label) {
     const kid_id = getKidId();
-    if (!kid_id) return alert("URLに ?kid=UUID を指定してください");
+    if (!kid_id) return notify.error("URLに ?kid=UUID を指定してください");
     try {
       const r = await fetch(api("switch.php"), {
         method:"POST",
@@ -74,15 +117,15 @@
       const j = await r.json();
       if (!r.ok || !j.ok) throw new Error(j.error || "failed");
       await refresh();
-      alert(`${jp(label)}を開始しました`);
+      notify.success(`${jp(label)}を開始しました`);
     } catch (e) {
-      alert("エラー: " + e.message);
+      notify.error("エラー: " + e.message);
     }
   }
 
   async function stopActivity() {
     const kid_id = getKidId();
-    if (!kid_id) return alert("URLに ?kid=UUID を指定してください");
+    if (!kid_id) return notify.error("URLに ?kid=UUID を指定してください");
     try {
       const r = await fetch(api("stop.php"), {
         method:"POST",
@@ -92,9 +135,9 @@
       const j = await r.json();
       if (!r.ok || !j.ok) throw new Error(j.error || "failed");
       await refresh();
-      alert("終了しました");
+      notify.success("終了しました");
     } catch (e) {
-      alert("エラー: " + e.message);
+      notify.error("エラー: " + e.message);
     }
   }
   function updateButtons(currentLabel) {
