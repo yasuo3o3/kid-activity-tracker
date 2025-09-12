@@ -34,8 +34,8 @@
 <script src="./assets/url-helper.js?v=2"></script>
 <script src="./assets/copy-link.js?v=2"></script>
 <script>
-  // new URL() でAPI URLを生成
-  const api = (p) => new URL(`api/${p}`, document.baseURI).href;
+  // publicUrl() でAPI URLを生成
+  const api = (p) => publicUrl(`api/${p}`);
 
   // SweetAlert2 ラッパー関数
   const notify = {
@@ -174,16 +174,22 @@
         displayActivityLogs(kid_id, j.events, j.today_event_count, today_only);
         updateToggleButton(kid_id, today_only, j.today_event_count);
       } else {
-        document.getElementById(`logs-${kid_id}`).innerHTML = '<div class="log-entry">ログの読み込みに失敗しました</div>';
+        const errorContainer = document.getElementById(`logs-${kid_id}`);
+        if (errorContainer) errorContainer.innerHTML = '<div class="log-entry">ログの読み込みに失敗しました</div>';
       }
     } catch (e) {
       console.error("ログ取得エラー:", e);
-      document.getElementById(`logs-${kid_id}`).innerHTML = '<div class="log-entry">ログの読み込みに失敗しました</div>';
+      const errorContainer = document.getElementById(`logs-${kid_id}`);
+      if (errorContainer) errorContainer.innerHTML = '<div class="log-entry">ログの読み込みに失敗しました</div>';
     }
   }
 
   function displayActivityLogs(kid_id, events, today_event_count, showing_today_only) {
     const container = document.getElementById(`logs-${kid_id}`);
+    if (!container) {
+      console.warn(`Element with id "logs-${kid_id}" not found`);
+      return;
+    }
     
     if (events.length === 0) {
       container.innerHTML = '<div class="log-entry">ログがありません</div>';
@@ -270,10 +276,10 @@
 
   async function initPage() {
     loadAllKidsStatus();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register(new URL("pwa/service-worker.js", document.baseURI).href);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register(publicUrl("pwa/service-worker.js"));
   }
 
-  window.addEventListener("load", initPage);
+  document.addEventListener("DOMContentLoaded", initPage);
 </script>
 
 </body>

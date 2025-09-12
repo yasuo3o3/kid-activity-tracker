@@ -5,13 +5,10 @@
  */
 function publicUrl(relativePath) {
   // <meta name="app-base"> があればそれを優先
-  const appBaseMeta = document.querySelector('meta[name="app-base"]');
-  if (appBaseMeta) {
-    return new URL(relativePath, appBaseMeta.getAttribute('content')).href;
-  }
-  
-  // なければ document.baseURI を使用
-  return new URL(relativePath, document.baseURI).href;
+  const meta = document.querySelector('meta[name="app-base"]')?.content?.trim();
+  const candidate = meta || document.baseURI || location.href;
+  const absBase = new URL(candidate, location.href).href;
+  return new URL(relativePath, absBase).href;
 }
 
 /**
