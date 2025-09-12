@@ -31,11 +31,14 @@
     <!-- リンク一覧セクション -->
     <section id="kid-link-grid" class="link-grid"></section>
   </main>
-<script src="./assets/url-helper.js?v=3"></script>
 <script src="./assets/copy-link.js?v=2"></script>
 <script>
-  // publicUrl() でAPI URLを生成
-  const api = (p) => publicUrl(`api/${p}`);
+  // シンプルなURL生成関数（キャッシュ問題回避）
+  function simpleUrl(path) {
+    const base = location.origin + location.pathname.replace(/\/[^\/]*$/, '/');
+    return base + path;
+  }
+  const api = (p) => simpleUrl(`api/${p}`);
 
   // SweetAlert2 ラッパー関数
   const notify = {
@@ -262,7 +265,7 @@
     kids.forEach(kid => {
       const name = kid.kid_name || '';
       const id = kid.kid_id || '';
-      const url = getKidUrl(id);
+      const url = simpleUrl('./?kid=' + encodeURIComponent(id));
       
       html += `
         <div class="link-card">
@@ -283,7 +286,7 @@
 
   async function initPage() {
     loadAllKidsStatus();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register(publicUrl("pwa/service-worker.js"));
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register(simpleUrl("pwa/service-worker.js"));
   }
 
   document.addEventListener("DOMContentLoaded", initPage);
