@@ -31,8 +31,8 @@
     <!-- リンク一覧セクション -->
     <section id="kid-link-grid" class="link-grid"></section>
   </main>
-<script src="./assets/url-helper.js"></script>
-<script src="./assets/copy-link.js?v=1"></script>
+<script src="./assets/url-helper.js?v=2"></script>
+<script src="./assets/copy-link.js?v=2"></script>
 <script>
   // publicUrl() を使用してAPI URLを生成
   const api = (p) => publicUrl(`./api/${p}`);
