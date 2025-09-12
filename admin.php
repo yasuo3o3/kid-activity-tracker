@@ -203,7 +203,7 @@
     kids.forEach(kid => {
       const name = kid.kid_name || '';
       const id = kid.kid_id || '';
-      const url = `https://netservice.jp/kid-activity-tracker/r.php?k=${encodeURIComponent(id)}`;
+      const url = `https://netservice.jp/kid-activity-tracker/?kid=${encodeURIComponent(id)}`;
       
       html += `
         <div class="link-card">
