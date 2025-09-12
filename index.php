@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#0ea5e9" />
   <link rel="manifest" href="/kid-activity-tracker/pwa/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="/kid-activity-tracker/style.css">
 </head>
@@ -57,7 +58,7 @@
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
   </main>
-
+<script src="/kid-activity-tracker/assets/copy-link.js?v=1"></script>
 <script>
   const BASE = location.pathname.replace(/\/[^\/]*$/, ""); // /kid-activity-tracker
   const api = (p) => `${BASE}/api/${p}`;
@@ -205,6 +206,13 @@
     document.getElementById("title").textContent = "みんなの活動状況";
     document.getElementById("note").textContent = "※ 全員の活動を一覧表示しています。";
     
+    // リンク一覧用のセクションを動的に追加
+    const noteElement = document.getElementById("note");
+    const linkSection = document.createElement("section");
+    linkSection.id = "kid-link-grid";
+    linkSection.className = "link-grid";
+    noteElement.parentNode.insertBefore(linkSection, noteElement.nextSibling);
+    
     loadAllKidsStatus();
   }
 
@@ -214,6 +222,7 @@
       const j = await r.json();
       if (j.ok) {
         displayAllKidsStatus(j.kids);
+        displayKidsLinkGrid(j.kids);
       }
     } catch (e) {
       console.error("全員の状況取得に失敗:", e);
@@ -342,7 +351,47 @@
     // 現在が「本日全件表示」なら「最新20件」に、逆なら「本日全件表示」に切り替え
     loadActivityLogs(kid_id, !isShowingToday);
   }
+
+  function displayKidsLinkGrid(kids) {
+    const linkSection = document.getElementById("kid-link-grid");
+    if (!linkSection || kids.length === 0) {
+      if (linkSection) {
+        linkSection.innerHTML = '<div class="link-notice">子どもが登録されていません</div>';
+      }
+      return;
+    }
+
+    let html = '';
+    kids.forEach(kid => {
+      const name = kid.kid_name || '';
+      const id = kid.kid_id || '';
+      const url = `https://netservice.jp/kid-activity-tracker/r.php?k=${encodeURIComponent(id)}`;
+      
+      html += `
+        <div class="link-card">
+          <div class="link-name">${escapeHtml(name)}</div>
+          <button class="qr-copy" type="button" aria-label="${escapeHtml(name)}のリンクをコピー" data-copy="${escapeHtml(url)}">リンクをコピー</button>
+        </div>
+      `;
+    });
+    
+    linkSection.innerHTML = html;
+  }
+
+    function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   window.addEventListener("load", initPage);
 </script>
+
+
+ゆうた<br>
+<img src="assets/yuta.png" alt="Yuta"><br>
+けいた<br>
+<img src="assets/keita.png" alt="Keita"><br>
+
 </body>
 </html>
