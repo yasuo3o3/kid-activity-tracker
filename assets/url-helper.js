@@ -4,11 +4,32 @@
  * @returns {string} 絶対URL
  */
 function publicUrl(relativePath) {
-  // <meta name="app-base"> があればそれを優先
-  const meta = document.querySelector('meta[name="app-base"]')?.content?.trim();
-  const candidate = meta || document.baseURI || location.href;
-  const absBase = new URL(candidate, location.href).href;
-  return new URL(relativePath, absBase).href;
+  // より堅牢なURL生成
+  try {
+    // <meta name="app-base"> があればそれを使用
+    const meta = document.querySelector('meta[name="app-base"]')?.content?.trim();
+    if (meta) {
+      return new URL(relativePath, meta).href;
+    }
+    
+    // document.baseURI を試す
+    if (document.baseURI) {
+      return new URL(relativePath, document.baseURI).href;
+    }
+    
+    // 最終フォールバック: 現在のページのディレクトリベース
+    const currentDir = location.origin + location.pathname.replace(/\/[^\/]*$/, '/');
+    return new URL(relativePath, currentDir).href;
+    
+  } catch (e) {
+    console.error("All URL construction methods failed:", e);
+    // 最終フォールバック: 文字列結合
+    const base = location.origin + location.pathname.replace(/\/[^\/]*$/, '/');
+    const cleanPath = relativePath.replace(/^\.\//, '');
+    const result = base + cleanPath;
+    console.log("Using string concatenation fallback:", result);
+    return result;
+  }
 }
 
 /**
