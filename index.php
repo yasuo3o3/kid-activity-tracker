@@ -59,8 +59,8 @@
 <script src="./assets/url-helper.js"></script>
 <script src="./assets/copy-link.js?v=1"></script>
 <script>
-  // BASEは不要、publicUrl() を使用
-  const api = (p) => `${BASE}/api/${p}`;
+  // publicUrl() を使用してAPI URLを生成
+  const api = (p) => publicUrl(`./api/${p}`);
 
   // SweetAlert2 ラッパー関数
   const notify = {
@@ -229,7 +229,7 @@
       document.getElementById("kid-activity-totals").style.display = "none";
       document.getElementById("kid-weekly-monthly").style.display = "none";
     }
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register(`${BASE}/pwa/service-worker.js`);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register(publicUrl('./pwa/service-worker.js'));
   }
 
 
