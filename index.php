@@ -128,6 +128,8 @@
       if (!r.ok || !j.ok) throw new Error(j.error || "failed");
       await refresh();
       notify.success(`${jp(label)}を開始しました`);
+      // ボタン状態を即座に更新
+      updateButtons(label);
     } catch (e) {
       console.error("Switch error:", e);
       notify.error("エラー: " + e.message);
@@ -157,23 +159,37 @@
       } else {
         await refresh();
         notify.success("終了しました");
+        // 全ボタンを非アクティブ状態に
+        updateButtons(null);
       }
     } catch (e) {
       notify.error("エラー: " + e.message);
     }
   }
   function updateButtons(currentLabel) {
+    console.log("updateButtons called with:", currentLabel);
     const activities = ['study', 'play', 'break'];
     activities.forEach(activity => {
       const startBtn = document.getElementById(`${activity}-btn`);
       const stopBtn = document.getElementById(`${activity}-stop`);
       
+      if (!startBtn || !stopBtn) {
+        console.warn(`Buttons not found for activity: ${activity}`);
+        return;
+      }
+      
       if (currentLabel === activity) {
+        console.log(`Setting ${activity} as active`);
         startBtn.disabled = true;
         stopBtn.disabled = false;
+        startBtn.style.opacity = '0.5';
+        stopBtn.style.opacity = '1';
       } else {
+        console.log(`Setting ${activity} as inactive`);
         startBtn.disabled = false;
         stopBtn.disabled = true;
+        startBtn.style.opacity = '1';
+        stopBtn.style.opacity = '0.5';
       }
     });
   }
@@ -207,6 +223,7 @@
       document.getElementById("month-total").textContent =
         `【今月】勉強：${formatTime(j.month_by_activity.study_sec||0)} ／ 遊び：${formatTime(j.month_by_activity.play_sec||0)} ／ 休憩：${formatTime(j.month_by_activity.break_sec||0)}`;
       
+      // ボタンの状態を更新
       updateButtons(j.now.label || null);
     }
   }
