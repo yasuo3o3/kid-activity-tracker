@@ -34,8 +34,8 @@
 <script src="./assets/url-helper.js?v=2"></script>
 <script src="./assets/copy-link.js?v=2"></script>
 <script>
-  // publicUrl() を使用してAPI URLを生成
-  const api = (p) => publicUrl(`./api/${p}`);
+  // new URL() でAPI URLを生成
+  const api = (p) => new URL(`api/${p}`, document.baseURI).href;
 
   // SweetAlert2 ラッパー関数
   const notify = {
@@ -270,7 +270,7 @@
 
   async function initPage() {
     loadAllKidsStatus();
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register(publicUrl('./pwa/service-worker.js'));
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register(new URL("pwa/service-worker.js", document.baseURI).href);
   }
 
   window.addEventListener("load", initPage);
