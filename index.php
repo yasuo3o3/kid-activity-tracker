@@ -148,9 +148,16 @@
       console.log("Stop Response status:", r.status);
       const j = await r.json();
       console.log("Stop Response data:", j);
-      if (!r.ok || !j.ok) throw new Error(j.error || "failed");
-      await refresh();
-      notify.success("終了しました");
+      if (!r.ok || !j.ok) {
+        if (j.error === 'no active session') {
+          notify.info("現在アクティブな活動がありません");
+        } else {
+          throw new Error(j.error || "failed");
+        }
+      } else {
+        await refresh();
+        notify.success("終了しました");
+      }
     } catch (e) {
       notify.error("エラー: " + e.message);
     }
