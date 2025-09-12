@@ -4,32 +4,33 @@
  * @returns {string} 絶対URL
  */
 function publicUrl(relativePath) {
-  // より堅牢なURL生成
-  try {
-    // <meta name="app-base"> があればそれを使用
-    const meta = document.querySelector('meta[name="app-base"]')?.content?.trim();
-    if (meta) {
-      return new URL(relativePath, meta).href;
-    }
-    
-    // document.baseURI を試す
-    if (document.baseURI) {
-      return new URL(relativePath, document.baseURI).href;
-    }
-    
-    // 最終フォールバック: 現在のページのディレクトリベース
-    const currentDir = location.origin + location.pathname.replace(/\/[^\/]*$/, '/');
-    return new URL(relativePath, currentDir).href;
-    
-  } catch (e) {
-    console.error("All URL construction methods failed:", e);
-    // 最終フォールバック: 文字列結合
-    const base = location.origin + location.pathname.replace(/\/[^\/]*$/, '/');
-    const cleanPath = relativePath.replace(/^\.\//, '');
-    const result = base + cleanPath;
-    console.log("Using string concatenation fallback:", result);
-    return result;
+  // 確実な文字列ベースURL生成
+  console.log("publicUrl called with:", relativePath);
+  
+  // <meta name="app-base"> の内容を取得
+  const meta = document.querySelector('meta[name="app-base"]')?.content?.trim();
+  console.log("meta app-base:", meta);
+  
+  let base;
+  
+  if (meta) {
+    // meta が設定されている場合はそれを使用
+    base = meta.endsWith('/') ? meta : meta + '/';
+  } else {
+    // 現在のページから基準パスを生成
+    base = location.origin + location.pathname.replace(/\/[^\/]*$/, '/');
   }
+  
+  console.log("base path:", base);
+  
+  // 相対パス記号を除去
+  const cleanPath = relativePath.replace(/^\.\//, '');
+  
+  // 結合
+  const result = base + cleanPath;
+  console.log("final URL:", result);
+  
+  return result;
 }
 
 /**

@@ -56,7 +56,7 @@
 
     <div class="note" id="note">※ URLに ?kid=UUID を指定してください。</div>
   </main>
-<script src="./assets/url-helper.js?v=2"></script>
+<script src="./assets/url-helper.js?v=3"></script>
 <script src="./assets/copy-link.js?v=2"></script>
 <script>
   // publicUrl() でAPI URLを生成
