@@ -265,7 +265,7 @@
     kids.forEach(kid => {
       const name = kid.kid_name || '';
       const id = kid.kid_id || '';
-      const url = simpleUrl('./?kid=' + encodeURIComponent(id));
+      const url = simpleUrl('./?child=' + encodeURIComponent(id));
       
       html += `
         <div class="link-card">
