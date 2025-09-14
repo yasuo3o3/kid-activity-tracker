@@ -34,7 +34,17 @@
       })
       .catch((error) => {
         console.error('Copy failed:', error);
-        alert('コピーに失敗しました');
+        // SweetAlert2が利用可能な場合は使用、そうでなければalert
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'エラー',
+            text: 'コピーに失敗しました',
+            confirmButtonText: 'OK'
+          });
+        } else {
+          alert('コピーに失敗しました');
+        }
       });
   });
 

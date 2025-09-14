@@ -9,18 +9,18 @@ $k = $_GET['k'] ?? '';
 
 if (empty($k)) {
     // k パラメータがない場合は親画面にリダイレクト
-    header('Location: /kid-activity-tracker/', true, 302);
+    header('Location: ./admin.php', true, 302);
     exit;
 }
 
 // UUID 形式の簡易チェック（オプション）
 // if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $k)) {
-//     header('Location: /kid-activity-tracker/', true, 302);
+//     header('Location: ./admin.php', true, 302);
 //     exit;
 // }
 
 // URL エンコードして本来のPWAにリダイレクト
-$redirectUrl = '/kid-activity-tracker/?kid_id=' . rawurlencode($k);
+$redirectUrl = './?kid=' . rawurlencode($k);
 header('Location: ' . $redirectUrl, true, 302);
 exit;
 ?>

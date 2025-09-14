@@ -5,6 +5,40 @@
 (function () {
   'use strict';
 
+  // Copy text to clipboard with fallback
+  function copyTextToClipboard(text) {
+    // Modern Clipboard API (requires HTTPS)
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    
+    // Fallback for older browsers or HTTP
+    return new Promise((resolve, reject) => {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      
+      try {
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          resolve();
+        } else {
+          reject(new Error('document.execCommand failed'));
+        }
+      } catch (err) {
+        document.body.removeChild(textArea);
+        reject(err);
+      }
+    });
+  }
+
   // Event delegation for copy buttons
   document.addEventListener('click', function (e) {
     const btn = e.target.closest('.qr-copy[data-copy]');
@@ -16,10 +50,8 @@
       return;
     }
 
-    // Copy to clipboard
-    const copyPromise = navigator.clipboard 
-      ? navigator.clipboard.writeText(text)
-      : Promise.reject(new Error('Clipboard API not supported'));
+    // Copy to clipboard with fallback
+    const copyPromise = copyTextToClipboard(text);
     
     copyPromise
       .then(() => {
@@ -34,7 +66,17 @@
       })
       .catch((error) => {
         console.error('Copy failed:', error);
-        alert('コピーに失敗しました');
+        // SweetAlert2が利用可能な場合は使用、そうでなければalert
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'エラー',
+            text: 'コピーに失敗しました',
+            confirmButtonText: 'OK'
+          });
+        } else {
+          alert('コピーに失敗しました');
+        }
       });
   });
 
