@@ -264,9 +264,8 @@
       localStorage.setItem('selectedChild', childParam);
     } else if (storedChild) {
       targetChild = storedChild;
-      const newUrl = new URL(location.href);
-      newUrl.searchParams.set('child', storedChild);
-      history.replaceState(null, '', newUrl.toString());
+      goToChild(storedChild);
+      return;
     }
 
     if (targetChild) {
@@ -274,6 +273,14 @@
     } else {
       showChildSelection();
     }
+  }
+
+  function goToChild(childId) {
+    const url = new URL(location.href);
+    url.searchParams.set('child', childId);
+    localStorage.setItem('selectedChild', childId);
+    history.replaceState(null, '', url.toString());
+    showChildScreen(childId);
   }
 
   async function showChildScreen(childId) {

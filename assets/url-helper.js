@@ -35,11 +35,22 @@ function publicUrl(relativePath) {
 
 /**
  * 子どものリンクURL生成
- * @param {string} kidId - 子どもID
+ * @param {string} childId - 子どもID
  * @returns {string} 子どもページの絶対URL
  */
-function getKidUrl(kidId) {
-  return publicUrl('./?kid=' + encodeURIComponent(kidId));
+function getKidUrl(childId) {
+  return publicUrl('./?child=' + encodeURIComponent(childId));
+}
+
+/**
+ * 子どもページへのナビゲーション
+ * @param {string} childId - 子どもID
+ */
+function goToChild(childId) {
+  const url = new URL(location.href);
+  url.searchParams.set('child', childId);
+  localStorage.setItem('selectedChild', childId);
+  location.href = url.toString();
 }
 
 /**
