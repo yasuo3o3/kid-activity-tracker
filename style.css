@@ -4,6 +4,34 @@
   color-scheme: light dark;
 }
 
+/* SweetAlert2 スタイル調整 */
+.swal2-container {
+  z-index: 10000 !important;
+}
+
+.swal2-popup {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial !important;
+}
+
+.swal2-title {
+  font-size: 1.4em !important;
+}
+
+.swal2-html-container {
+  font-size: 1em !important;
+}
+
+.swal2-confirm, .swal2-cancel {
+  font-size: 1em !important;
+  padding: 0.625em 2em !important;
+}
+
+/* Toast通知のスタイル調整 */
+.swal2-toast .swal2-title {
+  font-size: 1em !important;
+  margin: 0 !important;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
