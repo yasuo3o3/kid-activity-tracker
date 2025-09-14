@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#0ea5e9" />
   <base href="/kid-activity-tracker/">
   <meta name="app-base" content="/kid-activity-tracker/">
-  <link rel="manifest" href="./pwa/manifest.json">
+  <link rel="manifest" href="./pwa/manifest.json" id="manifest-link">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -287,10 +287,22 @@
       if (j.ok && j.kid_name) {
         document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
         document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;
+
+        // Update manifest for child-specific PWA
+        updateManifestForChild(childId, j.kid_name);
       }
       refresh();
     } catch (e) {
       console.error("名前の取得に失敗:", e);
+    }
+  }
+
+  function updateManifestForChild(childId, childName) {
+    const manifestLink = document.getElementById('manifest-link');
+    if (manifestLink) {
+      const manifestUrl = `./pwa/manifest.php?child=${encodeURIComponent(childId)}&name=${encodeURIComponent(childName)}`;
+      manifestLink.href = manifestUrl;
+      console.log(`Updated manifest for child: ${childName} (${childId})`);
     }
   }
 
