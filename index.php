@@ -109,7 +109,7 @@
 
   function getKidId() {
     const params = new URLSearchParams(location.search);
-    return params.get('kid') || '';
+    return params.get('kid') || params.get('child') || '';
   }
   async function startActivity(label) {
     const kid_id = getKidId();
@@ -245,34 +245,66 @@
     }
     return `${hours}時間${remainingMinutes}分`;
   }
-  async function initPage() {
-    const kid_id = getKidId();
-    if (kid_id) {
-      // kid_idから名前を取得してタイトルを設定
-      try {
-        const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`);
-        console.log("Name fetch API URL:", apiUrl);
-        const r = await fetch(apiUrl, { method:"GET" });
-        console.log("Name fetch Response status:", r.status);
-        const j = await r.json();
-        console.log("Name fetch Response data:", j);
-        if (j.ok && j.kid_name) {
-          document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
-          document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;
-        }
-      } catch (e) {
-        console.error("名前の取得に失敗:", e);
+  function getChildParam() {
+    const params = new URLSearchParams(location.search);
+    return params.get('child') || '';
+  }
+
+  function routeStartup() {
+    const isPWA = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    const childParam = getChildParam();
+    const storedChild = localStorage.getItem('selectedChild');
+
+    console.log(`SPA startup: PWA=${isPWA}, child=${childParam}, stored=${storedChild}`);
+
+    let targetChild = '';
+
+    if (childParam) {
+      targetChild = childParam;
+      localStorage.setItem('selectedChild', childParam);
+    } else if (storedChild) {
+      targetChild = storedChild;
+      const newUrl = new URL(location.href);
+      newUrl.searchParams.set('child', storedChild);
+      history.replaceState(null, '', newUrl.toString());
+    }
+
+    if (targetChild) {
+      showChildScreen(targetChild);
+    } else {
+      showChildSelection();
+    }
+  }
+
+  async function showChildScreen(childId) {
+    try {
+      const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(childId)}`);
+      console.log("Name fetch API URL:", apiUrl);
+      const r = await fetch(apiUrl, { method:"GET" });
+      console.log("Name fetch Response status:", r.status);
+      const j = await r.json();
+      console.log("Name fetch Response data:", j);
+      if (j.ok && j.kid_name) {
+        document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
+        document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;
       }
       refresh();
-    } else {
-      // kid_idが指定されていない場合
-      document.getElementById("title").textContent = "URLパラメータが必要です";
-      document.getElementById("note").innerHTML = `※ URLに ?kid=UUID を指定してください。<br>管理画面は <a href="admin.php">こちら</a> からアクセスできます。`;
-      document.getElementById("kid-screen").style.display = "none";
-      document.getElementById("kid-status").style.display = "none";
-      document.getElementById("kid-activity-totals").style.display = "none";
-      document.getElementById("kid-weekly-monthly").style.display = "none";
+    } catch (e) {
+      console.error("名前の取得に失敗:", e);
     }
+  }
+
+  function showChildSelection() {
+    document.getElementById("title").textContent = "URLパラメータが必要です";
+    document.getElementById("note").innerHTML = `※ URLに ?child=UUID を指定してください。<br>管理画面は <a href="admin.php">こちら</a> からアクセスできます。`;
+    document.getElementById("kid-screen").style.display = "none";
+    document.getElementById("kid-status").style.display = "none";
+    document.getElementById("kid-activity-totals").style.display = "none";
+    document.getElementById("kid-weekly-monthly").style.display = "none";
+  }
+
+  async function initPage() {
+    routeStartup();
     if ("serviceWorker" in navigator) navigator.serviceWorker.register(simpleUrl("pwa/service-worker.js"));
   }
 
