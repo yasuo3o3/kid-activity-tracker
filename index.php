@@ -9,7 +9,11 @@
   <meta name="theme-color" content="#0ea5e9" />
   <base href="/kid-activity-tracker/">
   <meta name="app-base" content="/kid-activity-tracker/">
-  <link rel="manifest" href="./pwa/manifest.json">
+  <?php
+  $childParam = $_GET['child'] ?? '';
+  $manifestHref = $childParam ? "./pwa/manifest.php?child=" . urlencode($childParam) : "./pwa/manifest.json";
+  ?>
+  <link rel="manifest" href="<?= htmlspecialchars($manifestHref) ?>" id="manifest-link">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -109,7 +113,7 @@
 
   function getKidId() {
     const params = new URLSearchParams(location.search);
-    return params.get('kid') || '';
+    return params.get('kid') || params.get('child') || '';
   }
   async function startActivity(label) {
     const kid_id = getKidId();
@@ -245,34 +249,85 @@
     }
     return `${hours}時間${remainingMinutes}分`;
   }
-  async function initPage() {
-    const kid_id = getKidId();
-    if (kid_id) {
-      // kid_idから名前を取得してタイトルを設定
-      try {
-        const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`);
-        console.log("Name fetch API URL:", apiUrl);
-        const r = await fetch(apiUrl, { method:"GET" });
-        console.log("Name fetch Response status:", r.status);
-        const j = await r.json();
-        console.log("Name fetch Response data:", j);
-        if (j.ok && j.kid_name) {
-          document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
-          document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;
-        }
-      } catch (e) {
-        console.error("名前の取得に失敗:", e);
+  function getChildParam() {
+    const params = new URLSearchParams(location.search);
+    return params.get('child') || '';
+  }
+
+  function routeStartup() {
+    const isPWA = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    const childParam = getChildParam();
+    const storedChild = localStorage.getItem('selectedChild');
+
+    console.log(`SPA startup: PWA=${isPWA}, child=${childParam}, stored=${storedChild}`);
+
+    let targetChild = '';
+
+    if (childParam) {
+      targetChild = childParam;
+      localStorage.setItem('selectedChild', childParam);
+    } else if (storedChild) {
+      targetChild = storedChild;
+      goToChild(storedChild);
+      return;
+    }
+
+    if (targetChild) {
+      showChildScreen(targetChild);
+    } else {
+      showChildSelection();
+    }
+  }
+
+  function goToChild(childId) {
+    const url = new URL(location.href);
+    url.searchParams.set('child', childId);
+    localStorage.setItem('selectedChild', childId);
+    history.replaceState(null, '', url.toString());
+    showChildScreen(childId);
+  }
+
+  async function showChildScreen(childId) {
+    try {
+      const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(childId)}`);
+      console.log("Name fetch API URL:", apiUrl);
+      const r = await fetch(apiUrl, { method:"GET" });
+      console.log("Name fetch Response status:", r.status);
+      const j = await r.json();
+      console.log("Name fetch Response data:", j);
+      if (j.ok && j.kid_name) {
+        document.getElementById("title").textContent = `${j.kid_name}：これから何する？`;
+        document.getElementById("note").textContent = `※ ${j.kid_name}専用画面です。`;
+
+        // Update manifest for child-specific PWA
+        updateManifestForChild(childId, j.kid_name);
       }
       refresh();
-    } else {
-      // kid_idが指定されていない場合
-      document.getElementById("title").textContent = "URLパラメータが必要です";
-      document.getElementById("note").innerHTML = `※ URLに ?kid=UUID を指定してください。<br>管理画面は <a href="admin.php">こちら</a> からアクセスできます。`;
-      document.getElementById("kid-screen").style.display = "none";
-      document.getElementById("kid-status").style.display = "none";
-      document.getElementById("kid-activity-totals").style.display = "none";
-      document.getElementById("kid-weekly-monthly").style.display = "none";
+    } catch (e) {
+      console.error("名前の取得に失敗:", e);
     }
+  }
+
+  function updateManifestForChild(childId, childName) {
+    const manifestLink = document.getElementById('manifest-link');
+    if (manifestLink) {
+      const manifestUrl = `./pwa/manifest.php?child=${encodeURIComponent(childId)}&name=${encodeURIComponent(childName)}`;
+      manifestLink.href = manifestUrl;
+      console.log(`Updated manifest for child: ${childName} (${childId})`);
+    }
+  }
+
+  function showChildSelection() {
+    document.getElementById("title").textContent = "URLパラメータが必要です";
+    document.getElementById("note").innerHTML = `※ URLに ?child=UUID を指定してください。<br>管理画面は <a href="admin.php">こちら</a> からアクセスできます。`;
+    document.getElementById("kid-screen").style.display = "none";
+    document.getElementById("kid-status").style.display = "none";
+    document.getElementById("kid-activity-totals").style.display = "none";
+    document.getElementById("kid-weekly-monthly").style.display = "none";
+  }
+
+  async function initPage() {
+    routeStartup();
     if ("serviceWorker" in navigator) navigator.serviceWorker.register(simpleUrl("pwa/service-worker.js"));
   }
 
