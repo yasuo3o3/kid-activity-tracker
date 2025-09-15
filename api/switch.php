@@ -13,7 +13,7 @@ if (!$kid_id || !in_array($label, ['study','play','break'], true)) {
 }
 
 $pdo = db();
-$nowIso = gmdate('c');
+$now = gmdate('Y-m-d H:i:s');
 
 // 直近の未終了セッション
 $stmt = $pdo->prepare("SELECT id, label, started_at FROM sessions WHERE kid_id=? AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1");
@@ -27,13 +27,13 @@ if ($open) {
     json_err('too soon', 409);
   }
   // 前セッションをクローズ
-  $pdo->prepare("UPDATE sessions SET ended_at=? WHERE id=?")->execute([$nowIso, $open['id']]);
+  $pdo->prepare("UPDATE sessions SET ended_at=? WHERE id=?")->execute([$now, $open['id']]);
 }
 
 // 新規セッション挿入
 $id = uuid();
 $pdo->prepare("INSERT INTO sessions (id, kid_id, label, started_at) VALUES (?,?,?,?)")
-    ->execute([$id, $kid_id, $label, $nowIso]);
+    ->execute([$id, $kid_id, $label, $now]);
 
 // その日初回動作時のみPushover通知を送信
 $config_path = __DIR__ . '/../config.php';
@@ -57,4 +57,4 @@ if ($is_first_today) {
   send_pushover_notification($message);
 }
 
-json_ok(['ok'=>true, 'current'=>['label'=>$label,'started_at'=>$nowIso]]);
+json_ok(['ok'=>true, 'current'=>['label'=>$label,'started_at'=>$now]]);

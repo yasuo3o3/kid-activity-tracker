@@ -5,6 +5,8 @@ function json_ok(array $body, int $status=200): void {
   header("Content-Type: application/json");
   header("Access-Control-Allow-Origin: *");
   header("Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type");
+  header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+  header("Pragma: no-cache");
   http_response_code($status);
   echo json_encode($body, JSON_UNESCAPED_UNICODE);
   exit;

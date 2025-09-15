@@ -12,7 +12,7 @@ if (!$kid_id) {
 }
 
 $pdo = db();
-$nowIso = gmdate('c');
+$now = gmdate('Y-m-d H:i:s');
 
 // 直近の未終了セッション
 $stmt = $pdo->prepare("SELECT id, label, started_at FROM sessions WHERE kid_id=? AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1");
@@ -24,8 +24,8 @@ if (!$open) {
 }
 
 // セッションをクローズ
-$pdo->prepare("UPDATE sessions SET ended_at=? WHERE id=?")->execute([$nowIso, $open['id']]);
+$pdo->prepare("UPDATE sessions SET ended_at=? WHERE id=?")->execute([$now, $open['id']]);
 
 // 終了時の通知は送信しない（その日初回動作時のみ通知する方針）
 
-json_ok(['ok'=>true, 'stopped'=>['label'=>$open['label'],'ended_at'=>$nowIso]]);
+json_ok(['ok'=>true, 'stopped'=>['label'=>$open['label'],'ended_at'=>$now]]);

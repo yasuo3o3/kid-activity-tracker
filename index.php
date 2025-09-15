@@ -201,7 +201,7 @@
   async function refresh() {
     const kid_id = getKidId();
     if (!kid_id) return;
-    const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(kid_id)}`);
+    const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(kid_id)}&t=${Date.now()}`);
     console.log("Stats API URL:", apiUrl);
     const r = await fetch(apiUrl, { method:"GET" });
     console.log("Stats Response status:", r.status);
@@ -289,7 +289,7 @@
 
   async function showChildScreen(childId) {
     try {
-      const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(childId)}`);
+      const apiUrl = api(`stats.php?kid_id=${encodeURIComponent(childId)}&t=${Date.now()}`);
       console.log("Name fetch API URL:", apiUrl);
       const r = await fetch(apiUrl, { method:"GET" });
       console.log("Name fetch Response status:", r.status);
