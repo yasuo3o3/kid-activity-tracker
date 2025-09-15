@@ -208,8 +208,12 @@
     const j = await r.json();
     console.log("Stats Response data:", j);
     if (j.ok) {
+      // j.now.since は新形式なら parseUtcToJst、既存形式なら toJstHHmm を使用
+      const sinceTime = j.now.since && j.now.since.includes('T') ? 
+        toJstHHmm(j.now.since) : 
+        formatJstDate(parseUtcToJst(j.now.since));
       document.getElementById("now").textContent =
-        j.now.label ? `今：${jp(j.now.label)}（${toJstHHmm(j.now.since)}開始）` : "今：—";
+        j.now.label ? `今：${jp(j.now.label)}（${sinceTime}開始）` : "今：—";
       document.getElementById("today").textContent =
         `今日：${formatTime(j.totals.today_sec||0)}`;
       
@@ -232,6 +236,22 @@
     }
   }
   function jp(label){ return label==="study"?"勉強":label==="play"?"遊び":"休憩"; }
+  
+  // UTC "YYYY-MM-DD HH:MM:SS" 形式をDateオブジェクトに変換
+  function parseUtcToJst(dateStr) {
+    if (!dateStr) return null;
+    // "YYYY-MM-DD HH:MM:SS" を UTC として解釈
+    return new Date(dateStr + 'Z');
+  }
+  
+  // DateオブジェクトからJSTのhh:mm形式を返す
+  function formatJstDate(date) {
+    if (!date) return "--:--";
+    const jstDate = new Date(date.getTime() + 9*3600*1000);
+    return String(jstDate.getUTCHours()).padStart(2,"0")+":"+String(jstDate.getUTCMinutes()).padStart(2,"0");
+  }
+  
+  // 後方互換のため残す（既存のISO形式データ用）
   function toJstHHmm(iso){
     const d = new Date(iso);
     const j = new Date(d.getTime() + 9*3600*1000);

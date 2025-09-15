@@ -106,7 +106,14 @@ json_ok([
 ]);
 
 function format_jst_datetime($utc_timestamp) {
-  $dt = new DateTime($utc_timestamp, new DateTimeZone('UTC'));
+  // UTC "YYYY-MM-DD HH:MM:SS" 形式と ISO 形式の両方に対応
+  if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $utc_timestamp)) {
+    // 新形式: "YYYY-MM-DD HH:MM:SS" を UTC として解釈
+    $dt = new DateTime($utc_timestamp . ' UTC');
+  } else {
+    // 既存形式: ISO 8601
+    $dt = new DateTime($utc_timestamp, new DateTimeZone('UTC'));
+  }
   $dt->setTimezone(new DateTimeZone('Asia/Tokyo'));
   return $dt->format('m/d H:i');
 }

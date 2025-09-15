@@ -97,6 +97,21 @@
   
   function jp(label){ return label==="study"?"勉強":label==="play"?"遊び":"休憩"; }
   
+  // UTC "YYYY-MM-DD HH:MM:SS" 形式をDateオブジェクトに変換
+  function parseUtcToJst(dateStr) {
+    if (!dateStr) return null;
+    // "YYYY-MM-DD HH:MM:SS" を UTC として解釈
+    return new Date(dateStr + 'Z');
+  }
+  
+  // DateオブジェクトからJSTのhh:mm形式を返す
+  function formatJstDate(date) {
+    if (!date) return "--:--";
+    const jstDate = new Date(date.getTime() + 9*3600*1000);
+    return String(jstDate.getUTCHours()).padStart(2,"0")+":"+String(jstDate.getUTCMinutes()).padStart(2,"0");
+  }
+  
+  // 後方互換のため残す（既存のISO形式データ用）
   function toJstHHmm(iso){
     const d = new Date(iso);
     const j = new Date(d.getTime() + 9*3600*1000);
@@ -130,7 +145,11 @@
     
     // 累計情報セクション
     kids.forEach(kid => {
-      const currentActivity = kid.now.label ? `今：${jp(kid.now.label)}（${toJstHHmm(kid.now.since)}開始）` : "今：休憩中";
+      // kid.now.since は新形式なら parseUtcToJst、既存形式なら toJstHHmm を使用
+      const sinceTime = kid.now.since && kid.now.since.includes('T') ? 
+        toJstHHmm(kid.now.since) : 
+        formatJstDate(parseUtcToJst(kid.now.since));
+      const currentActivity = kid.now.label ? `今：${jp(kid.now.label)}（${sinceTime}開始）` : "今：休憩中";
       
       html += `
         <div class="kid-card">
