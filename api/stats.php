@@ -41,8 +41,22 @@ $month_by_activity = ['study'=>0, 'play'=>0, 'break'=>0];
 $now = time();
 
 foreach ($rows as $r) {
-  $s = strtotime($r['started_at']);
-  $e = $r['ended_at'] ? strtotime($r['ended_at']) : $now;
+  // UTC "YYYY-MM-DD HH:MM:SS" 形式と ISO 形式の両方に対応
+  if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $r['started_at'])) {
+    $s = strtotime($r['started_at'] . ' UTC');
+  } else {
+    $s = strtotime($r['started_at']);
+  }
+  
+  if ($r['ended_at']) {
+    if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $r['ended_at'])) {
+      $e = strtotime($r['ended_at'] . ' UTC');
+    } else {
+      $e = strtotime($r['ended_at']);
+    }
+  } else {
+    $e = $now;
+  }
 
   $today_sec = overlap_seconds($s, $e, strtotime($ranges['today']['startUtc']),     strtotime($ranges['today']['endUtc']));
   $yesterday_sec = overlap_seconds($s, $e, strtotime($ranges['yesterday']['startUtc']), strtotime($ranges['yesterday']['endUtc']));
