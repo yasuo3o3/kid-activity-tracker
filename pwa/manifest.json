@@ -1,8 +1,8 @@
 {
   "name": "Kid Activity Tracker",
   "short_name": "KidTracker",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#0ea5e9",
   "background_color": "#ffffff",

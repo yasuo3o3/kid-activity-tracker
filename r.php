@@ -20,7 +20,7 @@ if (empty($k)) {
 // }
 
 // URL エンコードして本来のPWAにリダイレクト
-$redirectUrl = './?kid=' . rawurlencode($k);
+$redirectUrl = './?child=' . rawurlencode($k);
 header('Location: ' . $redirectUrl, true, 302);
 exit;
 ?>

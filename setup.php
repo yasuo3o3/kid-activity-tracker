@@ -115,7 +115,7 @@ try {
   
   $stmt = $pdo->query("SELECT id, display_name FROM kids WHERE archived = 0 ORDER BY created_at");
   while ($row = $stmt->fetch()) {
-    $kid_url = "?kid={$row['id']}";
+    $kid_url = "?child={$row['id']}";
     $full_url = $base_url . "/" . $kid_url;
     echo "  - {$row['display_name']}: <a href=\"{$full_url}\" target=\"_blank\">{$kid_url}</a>\n";
   }

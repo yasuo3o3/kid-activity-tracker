@@ -4,8 +4,13 @@ self.addEventListener("install", (e) => {
     "./pwa/manifest.json"
   ])));
 });
+
 self.addEventListener("fetch", (e) => {
-  e.respondWith(
-    caches.match(e.request).then((r) => r || fetch(e.request))
-  );
+  if (e.request.mode === 'navigate') {
+    e.respondWith(fetch(e.request));
+  } else {
+    e.respondWith(
+      caches.match(e.request).then((r) => r || fetch(e.request))
+    );
+  }
 });
